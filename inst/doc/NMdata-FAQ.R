@@ -29,6 +29,9 @@ knitr::opts_chunk$set(tidy.opts=list(width.cutoff=60), tidy=TRUE)
 #  NMdataConfig(as.fun="data.table")
 
 ## ----eval=FALSE---------------------------------------------------------------
+#  NMdataConf(file.mod=identity)
+
+## ----eval=FALSE---------------------------------------------------------------
 #  out2in <- function(file) file.path(dirname(file),"input.txt")
 #  res <- NMscanData("path/to/output.txt",file.mod=out2in)
 

@@ -14,19 +14,7 @@
 
 <title>NMdata FAQ</title>
 
-<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
-// be compatible with the behavior of Pandoc < 2.8).
-document.addEventListener('DOMContentLoaded', function(e) {
-  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
-  var i, h, a;
-  for (i = 0; i < hs.length; i++) {
-    h = hs[i];
-    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
-    a = h.attributes;
-    while (a.length > 0) h.removeAttribute(a[0].name);
-  }
-});
-</script>
+<script src="data:application/javascript;base64,Ly8gUGFuZG9jIDIuOSBhZGRzIGF0dHJpYnV0ZXMgb24gYm90aCBoZWFkZXIgYW5kIGRpdi4gV2UgcmVtb3ZlIHRoZSBmb3JtZXIgKHRvCi8vIGJlIGNvbXBhdGlibGUgd2l0aCB0aGUgYmVoYXZpb3Igb2YgUGFuZG9jIDwgMi44KS4KZG9jdW1lbnQuYWRkRXZlbnRMaXN0ZW5lcignRE9NQ29udGVudExvYWRlZCcsIGZ1bmN0aW9uKGUpIHsKICB2YXIgaHMgPSBkb2N1bWVudC5xdWVyeVNlbGVjdG9yQWxsKCJkaXYuc2VjdGlvbltjbGFzcyo9J2xldmVsJ10gPiA6Zmlyc3QtY2hpbGQiKTsKICB2YXIgaSwgaCwgYTsKICBmb3IgKGkgPSAwOyBpIDwgaHMubGVuZ3RoOyBpKyspIHsKICAgIGggPSBoc1tpXTsKICAgIGlmICghL15oWzEtNl0kL2kudGVzdChoLnRhZ05hbWUpKSBjb250aW51ZTsgIC8vIGl0IHNob3VsZCBiZSBhIGhlYWRlciBoMS1oNgogICAgYSA9IGguYXR0cmlidXRlczsKICAgIHdoaWxlIChhLmxlbmd0aCA+IDApIGgucmVtb3ZlQXR0cmlidXRlKGFbMF0ubmFtZSk7CiAgfQp9KTsK"></script>
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -50,6 +38,7 @@ document.addEventListener('DOMContentLoaded', function(e) {
 pre > code.sourceCode { white-space: pre; position: relative; }
 pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
 div.sourceCode { margin: 1em 0; }
 pre.sourceCode { margin: 0; }
@@ -136,187 +125,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 
 
-<style type="text/css">body {
-background-color: #fff;
-margin: 1em auto;
-max-width: 700px;
-overflow: visible;
-padding-left: 2em;
-padding-right: 2em;
-font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
-font-size: 14px;
-line-height: 1.35;
-}
-#TOC {
-clear: both;
-margin: 0 0 10px 10px;
-padding: 4px;
-width: 400px;
-border: 1px solid #CCCCCC;
-border-radius: 5px;
-background-color: #f6f6f6;
-font-size: 13px;
-line-height: 1.3;
-}
-#TOC .toctitle {
-font-weight: bold;
-font-size: 15px;
-margin-left: 5px;
-}
-#TOC ul {
-padding-left: 40px;
-margin-left: -1.5em;
-margin-top: 5px;
-margin-bottom: 5px;
-}
-#TOC ul ul {
-margin-left: -2em;
-}
-#TOC li {
-line-height: 16px;
-}
-table {
-margin: 1em auto;
-border-width: 1px;
-border-color: #DDDDDD;
-border-style: outset;
-border-collapse: collapse;
-}
-table th {
-border-width: 2px;
-padding: 5px;
-border-style: inset;
-}
-table td {
-border-width: 1px;
-border-style: inset;
-line-height: 18px;
-padding: 5px 5px;
-}
-table, table th, table td {
-border-left-style: none;
-border-right-style: none;
-}
-table thead, table tr.even {
-background-color: #f7f7f7;
-}
-p {
-margin: 0.5em 0;
-}
-blockquote {
-background-color: #f6f6f6;
-padding: 0.25em 0.75em;
-}
-hr {
-border-style: solid;
-border: none;
-border-top: 1px solid #777;
-margin: 28px 0;
-}
-dl {
-margin-left: 0;
-}
-dl dd {
-margin-bottom: 13px;
-margin-left: 13px;
-}
-dl dt {
-font-weight: bold;
-}
-ul {
-margin-top: 0;
-}
-ul li {
-list-style: circle outside;
-}
-ul ul {
-margin-bottom: 0;
-}
-pre, code {
-background-color: #f7f7f7;
-border-radius: 3px;
-color: #333;
-white-space: pre-wrap; 
-}
-pre {
-border-radius: 3px;
-margin: 5px 0px 10px 0px;
-padding: 10px;
-}
-pre:not([class]) {
-background-color: #f7f7f7;
-}
-code {
-font-family: Consolas, Monaco, 'Courier New', monospace;
-font-size: 85%;
-}
-p > code, li > code {
-padding: 2px 0px;
-}
-div.figure {
-text-align: center;
-}
-img {
-background-color: #FFFFFF;
-padding: 2px;
-border: 1px solid #DDDDDD;
-border-radius: 3px;
-border: 1px solid #CCCCCC;
-margin: 0 5px;
-}
-h1 {
-margin-top: 0;
-font-size: 35px;
-line-height: 40px;
-}
-h2 {
-border-bottom: 4px solid #f7f7f7;
-padding-top: 10px;
-padding-bottom: 2px;
-font-size: 145%;
-}
-h3 {
-border-bottom: 2px solid #f7f7f7;
-padding-top: 10px;
-font-size: 120%;
-}
-h4 {
-border-bottom: 1px solid #f7f7f7;
-margin-left: 8px;
-font-size: 105%;
-}
-h5, h6 {
-border-bottom: 1px solid #ccc;
-font-size: 105%;
-}
-a {
-color: #0033dd;
-text-decoration: none;
-}
-a:hover {
-color: #6666ff; }
-a:visited {
-color: #800080; }
-a:visited:hover {
-color: #BB00BB; }
-a[href^="http:"] {
-text-decoration: underline; }
-a[href^="https:"] {
-text-decoration: underline; }
-
-code > span.kw { color: #555; font-weight: bold; } 
-code > span.dt { color: #902000; } 
-code > span.dv { color: #40a070; } 
-code > span.bn { color: #d14; } 
-code > span.fl { color: #d14; } 
-code > span.ch { color: #d14; } 
-code > span.st { color: #d14; } 
-code > span.co { color: #888888; font-style: italic; } 
-code > span.ot { color: #007020; } 
-code > span.al { color: #ff0000; font-weight: bold; } 
-code > span.fu { color: #900; font-weight: bold; } 
-code > span.er { color: #a61717; background-color: #e3d2d2; } 
-</style>
+<link rel="stylesheet" href="data:text/css,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" type="text/css" />
 
 
 
@@ -332,7 +141,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<p>Built 2021-08-09 using NMdata 0.0.9.</p>
+<p>Built 2022-01-05 using NMdata 0.0.10.</p>
 <p>This vignette is still under development. Please make sure to see latest version available <a href="https://philipdelff.github.io/NMdata/">here</a>.</p>
 <div id="general-nmdata-questions" class="section level2">
 <h2>General NMdata questions</h2>
@@ -344,8 +153,10 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <ul>
 <li>Creating event-based data sets for PK/PD modeling</li>
 <li>Keeping Nonmem code updated to match contents of datasets</li>
-<li>Read all output data and combine with input data from Nonmem runs</li>
-<li>supply output list file (.lst), and the reader is very flexible and automated</li>
+<li>Read all output data and combine with input data from Nonmem runs
+<ul>
+<li>Very automated - supply output list file (.lst) only</li>
+</ul></li>
 </ul>
 <p>NMdata comes with a configuration tool that can be used to tailor default behaviour to the user’s system configuration and preferences.</p>
 </div>
@@ -363,14 +174,17 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 </div>
 <div id="how-do-i-install-nmdata" class="section level3">
 <h3>How do I install NMdata?</h3>
+<p>For most users, taking <code>NMdata</code> from the package archive you are already using is the prefered way:</p>
+<pre><code>install.packages(&quot;NMdata&quot;)
+library(NMdata)</code></pre>
 <p>To get the development version of NMdata, do the following from within R:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="kw">library</span>(remotes)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a><span class="kw">install_github</span>(<span class="st">&quot;philipdelff/NMdata&quot;</span>)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a><span class="kw">library</span>(NMdata)</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(remotes)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">install_github</span>(<span class="st">&quot;philipdelff/NMdata&quot;</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(NMdata)</span></code></pre></div>
 <p>In a production environment, use a <a href="https://github.com/philipdelff/NMdata/releases">github release</a> To install <code>NMdata X.Y.Z</code> release, do (notice “<span class="citation">@v</span>”:)</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="kw">library</span>(remotes)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a><span class="kw">install_github</span>(<span class="st">&quot;philipdelff/NMdata@vX.Y.Z&quot;</span>)</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a><span class="kw">library</span>(NMdata)</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(remotes)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">install_github</span>(<span class="st">&quot;philipdelff/NMdata@vX.Y.Z&quot;</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(NMdata)</span></code></pre></div>
 <p>This example is not automatically updated to latest available release. Please make sure to check for latest version on (<a href="https://github.com/philipdelff/NMdata/releases" class="uri">https://github.com/philipdelff/NMdata/releases</a>)</p>
 <p>If you need to archive a script that is dependent on a feature or bug fix which is only in the master branch, you can request a release.</p>
 </div>
@@ -400,30 +214,26 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 </div>
 <div id="so-nmdata-uses-data.table.-does-that-mean-variables-are-modified-by-reference" class="section level3">
 <h3>So NMdata uses data.table. Does that mean variables are modified by reference?</h3>
-<p>NMdata definitely modify variables by reference internally but this will never affect your workspace. It might improve speed to go all the way, and modify by reference in the user workspace, but using NMdata must be easy for R users at all levels of experience. If you don’t understand what this is all about, you’re fine.</p>
+<p>NMdata definitely modify variables by reference internally but this will not affect your workspace (only exception is <code>NMstamp()</code>). It might improve speed to go all the way and modify by reference in the user workspace, but using NMdata must be easy for R users at all levels of experience. If you don’t understand what this is all about, you’re fine.</p>
 </div>
 <div id="i-want-to-use-a-tool-from-nmdata-but-how-does-it-integrate-with-dplyr-or-data.table" class="section level3">
 <h3>I want to use a tool from NMdata, but how does it integrate with dplyr or data.table?</h3>
-<p>Every function in NMdata has an argument called <code>as.fun</code>. You can provide a function in this argument which will be applied to data before returning it.</p>
+<p>Every function in NMdata has an argument called <code>as.fun</code>. You can provide a function in this argument which will automatically be applied to results.</p>
 <p>You can get a tibble if you work with <code>dplyr</code>/<code>tidyverse</code> tools:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="kw">NMscanData</span>(..., <span class="dt">as.fun =</span> tibble<span class="op">::</span>as_tibble)</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">NMscanData</span>(..., <span class="at">as.fun =</span> tibble<span class="sc">::</span>as_tibble)</span></code></pre></div>
 <p>Under the hood, NMdata is implemented in <code>data.table</code>, and in fact the default is to convert to <code>data.frame</code> before returning the output. So if you want to have <code>data.table</code>’s back, use <code>as.fun=&quot;data.table&quot;</code> (notice as a character string, not a function) to avoid the conversion</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="kw">NMscanData</span>(..., <span class="dt">as.fun =</span> <span class="st">&quot;data.table&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">NMscanData</span>(..., <span class="at">as.fun =</span> <span class="st">&quot;data.table&quot;</span>)</span></code></pre></div>
 <p>Using <code>as.fun=as.data.table</code> (a function this time) wold work but is not recommended, because that would do an unnecessary copy of data.</p>
 <p>If you want to change the behaviour generally for the session and omit the <code>as.fun</code> argument, you can do this by this option:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="co">## for tibbles</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a><span class="kw">NMdataConfig</span>(<span class="dt">as.fun =</span> tibble<span class="op">::</span>as_tibble)</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a><span class="co">## for data.table</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true"></a><span class="kw">NMdataConfig</span>(<span class="dt">as.fun =</span> <span class="st">&quot;data.table&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="do">## for tibbles</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">NMdataConfig</span>(<span class="at">as.fun =</span> tibble<span class="sc">::</span>as_tibble)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="do">## for data.table</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">NMdataConfig</span>(<span class="at">as.fun =</span> <span class="st">&quot;data.table&quot;</span>)</span></code></pre></div>
 <p>All NMdata functions (that return data) should now return tibbles or data.tables. If you use <code>NMdataConfig</code> to control this, for reproducibility please do so explicitly in your script and not in your <code>.Rprofile</code> or similar.</p>
 </div>
 <div id="the-help-of-an-nmdata-function-says-i-have-to-pass-a-data.frame.-can-i-use-a-tibble-or-data.table" class="section level3">
 <h3>The help of an NMdata function says I have to pass a data.frame. Can I use a tibble or data.table?</h3>
 <p>Absolutely. data.table’s and tibble’s are data.frame’s, and data.frame in the documentation refers to any of these structures (that technically inherit from the data.frame class).</p>
-</div>
-<div id="the-result-i-am-getting-back-from-an-nmdata-function-doesnt-print-to-the-r-console.-why" class="section level3">
-<h3>The result I am getting back from an NMdata function doesn’t print to the R console. Why?</h3>
-<p>This should have been taken care of in most recent NMdata releases. This was something that could happen in earlier versions when working with data.tables - and only when working with data.tables. If you experience this in a &gt;0.0.7 version, pleae file a bug. You would have to print the data.table a couple of times before you see a result in the R terminal.</p>
 </div>
 <div id="can-i-request-a-feature" class="section level3">
 <h3>Can I request a feature?</h3>
@@ -437,21 +247,44 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 </div>
 <div id="questions-specific-to-data-reading-tools" class="section level2">
 <h2>Questions specific to data reading tools</h2>
-<div id="how-do-i-customize-the-naming-of-input-and-output-control-streams" class="section level3">
-<h3>How do I customize the naming of input and output control streams?</h3>
+<div id="i-dont-use-psn.-what-should-i-do" class="section level3">
+<h3>I don’t use PSN. What should I do?</h3>
 <p><code>NMscanData</code> needs the path to the output control stream (technically, the input control stream will work too, but this is not recommended). It has no requirement to the naming of files.</p>
-<p>By default, <code>NMscanData</code> expects a <a href="https://uupharmacometrics.github.io/PsN/">PSN</a>-style naming of input and output control streams. This means that if the input control stream is called <code>model.mod</code>, the returned control stream is called <code>model.lst</code>. If you use a different setup, you can use the <code>file.mod</code> argument. Do one of the following if needed:</p>
-<ul>
-<li>Explicitly give the path to the input control stream or</li>
-<li>Pass a function that translates from the output control stream to the input.</li>
-</ul>
-<p>Example if the input is called <code>input.txt</code> and the output is called <code>output.txt</code>:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a>out2in &lt;-<span class="st"> </span><span class="cf">function</span>(file) <span class="kw">file.path</span>(<span class="kw">dirname</span>(file), <span class="st">&quot;input.txt&quot;</span>)</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a>res &lt;-<span class="st"> </span><span class="kw">NMscanData</span>(<span class="st">&quot;path/to/output.txt&quot;</span>, <span class="dt">file.mod =</span> out2in)</span></code></pre></div>
-<p>You can use <code>NMdataConf</code> to configure the default behaviour to match your setup:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a><span class="kw">NMdataConf</span>(<span class="dt">file.mod =</span> out2in)</span></code></pre></div>
+<p><code>NMdata</code> by default assumes a <a href="https://uupharmacometrics.github.io/PsN/">PSN</a> setup. The reason this makes a difference is a little technical but briefly, the path to the input data is not available in the list file when using PSN. If you don’t use PSN, all information will probably be available in the output control stream. Enough talking, just do this:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">NMdataConf</span>(<span class="at">file.mod =</span> identity)</span></code></pre></div>
+<!--
+### How do I customize the naming of input and output control streams?
+By default, `NMscanData` expects a
+[PSN](https://uupharmacometrics.github.io/PsN/)-style naming of input
+and output control streams. This means that if the input control
+stream is called `model.mod`, the returned control stream is called
+`model.lst`. If you use a different setup, you can use the `file.mod`
+argument. Do one of the following if needed:
+
+* Explicitly give the path to the input control stream or
+* Pass a function that translates from the output control stream to
+the input. 
+
+Example if the input is called `input.txt` and the output
+is called `output.txt`:
+
+
+```r
+out2in <- function(file) file.path(dirname(file), "input.txt")
+res <- NMscanData("path/to/output.txt", file.mod = out2in)
+```
+
+You can use `NMdataConf` to configure the default behaviour to match your setup:
+
+```r
+NMdataConf(file.mod = out2in)
+```
+-->
+</div>
+<div id="how-can-i-customize-how-nmscandata-names-models" class="section level3">
+<h3>How can I customize how NMscanData names models?</h3>
 <p><code>NMscanData</code> take the name of the model from the file name and adds it to a column in the returned data. If the name of the directory is the model name, you can do the following as well:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="kw">NMdataConfig</span>(<span class="dt">modelname =</span> <span class="cf">function</span>(file) <span class="kw">basename</span>(<span class="kw">dirname</span>(<span class="kw">normalizePath</span>(file))))</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">NMdataConfig</span>(<span class="at">modelname =</span> <span class="cf">function</span>(file) <span class="fu">basename</span>(<span class="fu">dirname</span>(<span class="fu">normalizePath</span>(file))))</span></code></pre></div>
 <p>Feel free to modify the function to omit parts of the string or add to it.</p>
 </div>
 <div id="what-is-input-and-output-data" class="section level3">

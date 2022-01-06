@@ -6,23 +6,26 @@
 ##'     or not? If not, an overview of column names in data and in
 ##'     Nonmem code is still returned with the data.
 ##' @return data with column names translated as specified by nonmem
-##'     control stream. Class same as for 'data' argument.
+##'     control stream. Class same as for 'data' argument. Class
+##'     data.table.
+##' @import data.table
 
 ## don't export. An internal function used by NMscanInput. 
 
 NMtransInp <- function(data,file,translate=TRUE){
 
-    ## data is assumed to be a data.table, and a data.table is returned.
+
+
 
 #### Section start: Dummy variables, only not to get NOTE's in package checks ####
     datafile <- NULL
     DATA <- NULL
     compare <- NULL    
-
+    INPUT <- NULL
 
 ### Section end: Dummy variables, only not to get NOTE's in package checks ####
 
-
+    stopifnot(is.data.table(data))
 
     ## According to NM manual IV-1, $INPUT and $INFILE are the same thing.    
     lines <- NMreadSection(file,section="INPUT",keepName=FALSE,keepComments=FALSE,cleanSpaces=TRUE)
@@ -57,7 +60,7 @@ NMtransInp <- function(data,file,translate=TRUE){
     ## More column names can be specified in the nonmem control stream
     ## than actually found in the input data. We will simply disregard
     ## them.
-    nminfo.data.0 <- NMinfo(data)
+    nminfo.data.0 <- NMinfoDT(data)
     cnames.input.0 <- copy(colnames(data))
     cnames.input <- copy(cnames.input.0)
 
@@ -106,7 +109,8 @@ NMtransInp <- function(data,file,translate=TRUE){
                       length(colnames(data)) ## result
                       )
     dt.colnames <- data.table(datafile=c(cnames.input.0,rep(NA_character_,length.max-length(cnames.input.0))),
-                              DATA=c(nms0,rep(NA_character_,length.max-length(nms0))),
+                              ## DATA=c(nms0,rep(NA_character_,length.max-length(nms0))),
+                              "INPUT"=c(nms0,rep(NA_character_,length.max-length(nms0))),
                               nonmem=c(nms1,rep(NA_character_,length.max-length(nms1))),
                               ## result.all=c(colnames(data),rep(NA_character_,length.max-length(colnames(data))))
                               result=c(colnames(data),rep(NA_character_,length.max-length(colnames(data))))
@@ -114,11 +118,12 @@ NMtransInp <- function(data,file,translate=TRUE){
 
     
     ## compare: OK, diff, off
-    dt.colnames[tolower(datafile)==tolower(DATA),compare:="OK"]
-    dt.colnames[tolower(datafile)!=tolower(DATA),compare:="diff"]
-    dt.colnames[compare=="diff"&tolower(DATA)%in%tolower(datafile),compare:="off"]
+    dt.colnames[tolower(datafile)==tolower(INPUT),compare:="OK"]
+    dt.colnames[tolower(datafile)!=tolower(INPUT),compare:="diff"]
+    dt.colnames[compare=="diff"&tolower(INPUT)%in%tolower(datafile),compare:="off"]
     dt.colnames[,compare:=factor(compare,levels=c("OK","diff","off"))]
-    writeNMinfo(data,nminfo.data.0)
-    writeNMinfo(data,list(input.colnames=dt.colnames),append=TRUE)
+
+    writeNMinfo(data,nminfo.data.0,byRef=TRUE)
+    writeNMinfo(data,list(input.colnames=dt.colnames),append=TRUE,byRef=TRUE)
     data
 }

@@ -17,7 +17,7 @@ test_that("basic",{
 
     pk <- readRDS(file=system.file("examples/data/xgxr2.rds",package="NMdata"))
 
-    res1 <- NMwriteData(pk,file=system.file("examples/data/xgxr1.csv",package="NMdata"),
+    res1 <- NMwriteData(pk,file="testOutput/NMwriteData1.csv",
                         write.rds=F,write.csv=F,nmdir.data="/example")
     res1 <- fix.input(res1)
     ## lapply(res1,print)
@@ -130,12 +130,13 @@ test_that("nm.copy, nm.rename, drop",{
 ### arguments that tailors text for Nonmem
                          ,args.rds=list(version=2),
                          ,args.RData=list(version=2))
-    load("testOutput/pk.RData")
-    pk.rdata <- pk
-    all.res <- list(rds=readRDS("testOutput/pk.rds")
-                   ,csv=fread("testOutput/pk.csv")
-                   ,Rdata=fread("testOutput/pk.csv")
-                    )
+### for testing of file contents. Not used.
+    ## load("testOutput/pk.RData")
+    ## pk.rdata <- pk
+    ## all.res <- list(rds=readRDS("testOutput/pk.rds")
+    ##                ,csv=fread("testOutput/pk.csv")
+    ##                ,Rdata=fread("testOutput/pk.csv")
+    ##                 )
     expect_equal_to_reference(nmCode,fileRef,version=2)
 })
 
@@ -163,10 +164,12 @@ test_that("with stamp on csv",{
     pk <- readRDS(file=system.file("examples/data/xgxr2.rds",package="NMdata"))
 
     res1 <- NMwriteData(pk,file=outfile
-                        ,script="A simple test",write.rds=FALSE)
+                       ,script="A simple test",write.rds=FALSE,
+                        args.stamp=list(time=as.POSIXct("2021-11-21 11:00:00")))
     res1 <- fix.input(res1)
 
     expect_equal_to_reference(
         res1
        ,fileRef,version=2)
-})
+}
+)

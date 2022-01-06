@@ -1,4 +1,4 @@
-##' read all output data tables in nonmem run
+##' Find and read all output data tables in nonmem run
 ##' @param file the nonmem file to read (normally .mod or .lst)
 ##' @param details If TRUE, metadata is added to output. In this case,
 ##'     you get a list. Typically, this is mostly useful if
@@ -25,6 +25,8 @@
 ##'     this is in one element, called data, and meta is another
 ##'     element. If not, only the data is
 ##'     returned.
+##' @examples
+##' tabs1 <- NMscanTables(system.file("examples/nonmem/xgxr001.lst", package="NMdata"))
 ##' @family DataRead
 ##' @import data.table
 ##' @export
@@ -91,8 +93,9 @@ NMscanTables <- function(file,details=FALSE,as.fun,quiet,tab.count=FALSE,col.id=
     })
 
     meta <- rbindlist(tab.files)
-    meta[,`:=`(sep=ifelse(grepl(",",format),","," ")
-              ,nrow=NA_real_
+    ## seperator is not being used, so left out from metadata
+    ##sep=ifelse(grepl(",",format),","," "),
+    meta[,`:=`(nrow=NA_real_
               ,ncol=NA_real_
                )]
 
@@ -130,11 +133,12 @@ file?"))
     has.row.level <- meta[,any((firstonly+lastonly+firstlastonly)==0)]
     ## level is the observed level. If a first only table has as many
     ## rows as a row-level table, it's row label.
-    meta[,full.length:=(nrow==max(nrow))]
-    if(has.row.level){   
+    if(has.row.level){
+        meta[,full.length:=(nrow==max(nrow))]
         meta[full.length==TRUE,level:="row"]
         meta[full.length==FALSE,level:="id"]
     } else {
+        meta[,full.length:=FALSE]
         meta[,level:="id"]
     }
     ## not supported
@@ -156,7 +160,9 @@ file?"))
 ## test if all  have same length within level. 
     
     meta[,file.mtime:=file.mtime(file)]
-    setcolorder(meta,intersect(c("source","name","nrow","ncol","nid","level","scope","has.col.row","has.col.id","full.length","filetype","format","sep","file.mtime","file"),colnames(meta)))
+    ## sep not used so omitted 
+    setcolorder(meta,intersect(c("source","name","nrow","ncol","nid","level","scope","has.col.row","has.col.id","full.length","filetype","format",
+                                 "file.mtime","file"),colnames(meta)))
     
     
     if(!quiet){

@@ -18,8 +18,8 @@ library(ggplot2)
 theme_set(theme_bw()+theme(legend.position="bottom"))
 
 ## ----eval=FALSE,include=FALSE-------------------------------------------------
-#  library(devtools)
-#  load_all()
+#  ## library(devtools)
+#  ## load_all()
 
 ## ----file-shortcut,include=T--------------------------------------------------
 file.NMdata <- function(...) system.file(file.path("examples/nonmem",...), package="NMdata")
