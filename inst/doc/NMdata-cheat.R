@@ -15,6 +15,9 @@ library(NMdata)
 NMdataConf(as.fun="data.table"
           ,check.time=F)
 
+library(ggplot2)
+theme_set(theme_bw()+theme(legend.position="bottom"))
+
 ## this change data.table syntax. I think we can do without.
 ## knitr::opts_chunk$set(tidy.opts=list(width.cutoff=60), tidy=TRUE)
 
@@ -23,13 +26,11 @@ pk <- readRDS(file=system.file("examples/data/xgxr2.rds",package="NMdata"))
 covs <- unique(pk[,.(ID,WEIGHTB)])
 pk[,WEIGHTB:=NULL]
 set.seed(1)
-covs2 <- covs[,.(ID,cov2=sample(c("caucasian","black"),size=.N,replace=T))]
+covs2 <- covs[,.(ID,race=sample(c("caucasian","black"),size=.N,replace=T))]
 
 
 ## ---- echo=FALSE--------------------------------------------------------------
-htmltools::img(src = knitr::image_uri(## file.path(R.home("pkgdown"), "favicon", "apple-touch-icon-152x152.png")),
-                                ## system.file("pkgdown/favicon/apple-touch-icon-152x152.png",package="NMdata")),
-                                "apple-touch-icon-180x180.png"),
+htmltools::img(src = knitr::image_uri("apple-touch-icon-180x180.png"),
                alt = 'logo', 
                style = 'position:absolute; top:15px; right:70px; padding:0px; width:150px')
 
@@ -40,19 +41,19 @@ htmltools::img(src = knitr::image_uri(## file.path(R.home("pkgdown"), "favicon",
 ## -----------------------------------------------------------------------------
 compareCols(covs,covs2)
 
+## -----------------------------------------------------------------------------
+pk2 <- mergeCheck(pk,covs2,by="ID")
+
 ## ----eval=FALSE---------------------------------------------------------------
-#  ## Append an "N" to columns that NONMEM can read (as numeric)
+#  ## Example 1: Append an "N" to columns that NONMEM _can_ read (as numeric)
 #  pk <- renameByContents(data=pk,
 #                         fun.test = NMisNumeric,
 #                         fun.rename = function(x)paste0(x,"N"))
-#  ## lowercase names of columns that NONMEM cannot read as numeric
+#  ## Example 2: lowercase names of columns that NONMEM _cannot_ read
 #  pk <- renameByContents(data=pk,
 #                         fun.test = NMisNumeric,
 #                         fun.rename = tolower,
 #                         invert.test = TRUE)
-
-## -----------------------------------------------------------------------------
-pk2 <- mergeCheck(pk,covs2,by="ID")
 
 ## ----include=FALSE------------------------------------------------------------
 pk[,(cc(FLAG,flag)):=NULL]
@@ -61,7 +62,6 @@ pk[,(cc(FLAG,flag)):=NULL]
 dt.flags <- fread(text="FLAG,flag,condition
 10,Below LLOQ,BLQ==1
 100,Negative time,TIME<0")
-
 pk <- flagsAssign(pk,tab.flags=dt.flags,subset.data="EVID==0")
 pk <- flagsAssign(pk,subset.data="EVID==1",flagc.0="Dosing")
 flagsCount(pk[EVID==0],tab.flags=dt.flags)[,.( flag, N.left, Nobs.left, N.discard, Nobs.discard)]
@@ -102,23 +102,24 @@ res.debug$NMcheckData$summary
 
 ## -----------------------------------------------------------------------------
 res1 <- NMscanData("nonmem/run101.lst")
-class(res1)
 
 ## ----include=F----------------------------------------------------------------
 ## rm(NMscanData)
 
 ## -----------------------------------------------------------------------------
-library(ggplot2)
-## tell NMdata functions to return data.tables
-NMdataConf(as.fun="data.table")
-res1.dt <- NMscanData("nonmem/run101.lst",recover.rows=TRUE)
-ggplot(res1.dt[ID==135&EVID==0],aes(TIME))+
-    geom_point(aes(y=DV,colour=flag))+
-    geom_line(aes(y=PRED))+
-    labs(y="Concentration (unit)",subtitle=unique(res1.dt$model))
+## Recover rows that were not read by NONMEM (due to ACCEPT/IGNORE)
+res2 <- NMscanData("nonmem/run101.lst",recover.rows=TRUE)
 
 ## -----------------------------------------------------------------------------
-levels(res1.dt$trtact)
+library(ggplot2)
+res2.plot <- subset(res2,ID==135&EVID==0)
+ggplot(res2.plot,aes(TIME))+
+    geom_point(aes(y=DV,colour=flag))+
+    geom_line(aes(y=PRED))+
+    labs(y="Concentration (unit)",subtitle=unique(res2$model))
+
+## -----------------------------------------------------------------------------
+levels(res1$trtact)
 
 ## ----eval=FALSE---------------------------------------------------------------
 #  NMdataConf(as.fun=tibble::as_tibble)
@@ -131,14 +132,14 @@ levels(res1.dt$trtact)
 #  NMdataConf(file.mod=identity)
 
 ## -----------------------------------------------------------------------------
-names(NMinfo(res1.dt))
+names(NMinfo(res1))
 
 ## -----------------------------------------------------------------------------
-NMinfo(res1.dt,"dataCreate")
+NMinfo(res1,"dataCreate")
 
 ## -----------------------------------------------------------------------------
-NMinfo(res1.dt,"columns")[1:8]
+NMinfo(res1,"columns")[1:8]
 
 ## -----------------------------------------------------------------------------
-NMinfo(res1.dt,"columns")[30:33]
+NMinfo(res1,"columns")[30:33]
 

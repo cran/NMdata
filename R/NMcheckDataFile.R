@@ -12,6 +12,7 @@
 ##' @param file.mod How to find the input control stream if you are using the output control stream.
 ##' @param as.fun The function to run results through before returning them.
 ##' @param ... passed to NMcheckData
+##' @keywords internal
 
 ### Don't export. NMcheckData will be the way in.
 
@@ -29,11 +30,16 @@ NMcheckDataFile <- function(file,col.row,col.id="ID",use.rds=FALSE,quiet=FALSE,f
     }
     col.row <- NMdataDecideOption("col.row",col.row)
 
-    inp <- NMscanInput(file,use.rds=use.rds,col.id=col.id,col.row=col.row,quiet=TRUE,applyFilters=TRUE,as.fun=as.fun)
+    inp <- NMscanInput(file,use.rds=use.rds,col.id=col.id,col.row=col.row,
+                       translate=TRUE,recover.cols=FALSE,applyFilters=TRUE,
+                       quiet=TRUE,as.fun=as.fun)
 
     dots <- list(...)
-    
-    res.check <- NMcheckData(inp,return.summary=TRUE,col.id=col.id,col.row=col.row,quiet=TRUE,as.fun=as.fun,col.flagn=NULL,...)
+
+    cols.num <- setdiff(colnames(inp),c("DV","AMT"))
+    res.check <- NMcheckData(inp,return.summary=TRUE,col.id=col.id,
+                             col.row=col.row,quiet=TRUE,as.fun=as.fun,
+                             col.flagn=NULL,cols.num=cols.num,...)
 
     list.res <- NMinfo(inp,as.fun=as.fun)
     list.res <- append(list.res,list(NMcheckData=res.check))
