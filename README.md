@@ -22,7 +22,7 @@ takes a lot of work to get there, and there are many pitfalls along the
 way. NMdata helps simplifying this work and steering around the pitfalls
 or at least making sure we didn’t fall into them.
 
-### Automate the book keeping and allow more time for actual modeling
+### Automate book keeping and focus on modeling
 
 Preparing data sets - and if you use NONMEM, reading the results data -
 can be tedious, and mistakes can lead to hours of frustration. NMdata
@@ -100,9 +100,10 @@ res <- NMscanData("xgxr014.lst",recover.rows=TRUE)
 #>           (result)      1502    34+2     150
 #> 
 #> Distribution of rows on event types in returned data:
-#>  EVID Input only Output
-#>     0        597    755
-#>     1          0    150
+#>  EVID CMT Input only Output
+#>     0   1          2      0
+#>     0   2        595    755
+#>     1   1          0    150
 ```
 
 And we are ready to plot (a subset of) the result:
@@ -114,8 +115,8 @@ ggplot(res.plot,aes(TIME))+
     geom_point(aes(y=DV,colour=flag))+
     geom_line(aes(y=PRED))+
     facet_wrap(~trtact)+
-    labs(y="Concentration (unit)",subtitle=unique(res.plot$model),colour="Observations",
-         caption="NOTICE:\nObservations are coloured by a character column fetched from input data.\nSamples below LLOQ are rows added from input data.\nPlots are correctly sorted because factor levels of dose are preserved from input data.")+
+    labs(y="Concentration (unit)",colour="Observations",
+         subtitle="NOTICE:\nObservations are coloured by a character column fetched from input data.\nSamples below LLOQ are rows added from input data.\nPlots are correctly sorted because factor levels of dose are preserved from input data.")+
     theme_bw()+theme(legend.position="bottom")
 #> Warning: Removed 2 row(s) containing missing values (geom_path).
 ```

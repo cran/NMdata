@@ -1,3 +1,102 @@
+# NMdata 0.0.12
+
+* Vignettes are no longer included in R package and can only be read
+  online at https://philipdelff.github.io/NMdata/ They are still being
+  maintained, and the exclusion from the package releases is only due
+  to CRAN's restrictive requirements to the package size.
+
+* New function, NMscanMultiple, to read multiple models and stack
+  results in one data set. This is very useful for meta
+  analysis. NMscanMultiple is a wrapper of NMscanData. It keeps track
+  of warnings and errors for reading of individual models rather than
+  getting stuck. You can either specify a vector of model paths or a
+  directory plus a regular expression (just like for NMwriteSection).
+
+* Improved tests of order of age of output control streams and input
+  data in NMscanData. So far, all data were tested on file
+  modification times which is not useful in the common case that data
+  files and/or nonmem control streams are moved around between
+  systems. Now NMscanData can look for a time stamp in the output
+  control stream and if NMwriteData was use to write the input data to
+  file, the creation time is taken from meta data. This will make the
+  warnings about the order of age of files more reliable. Notice
+  however, that for the output control stream, the timezone has to be
+  set using the tz.lst argument or using NMdataConf - at least for
+  now.
+  
+* Checks of unique subject identifier (usubjid) included in
+  NMcheckData. This is mostly to detect the potential issue that the
+  subject IDs generated for analysis are not unique across actual
+  subjects. If a usubjid (e.g. from clinical data sets) is included in
+  data, NMcheckData can check this for basic properties and check the
+  analysis subject ID and the usubjid against each other.
+
+* New function: cl - creates factors, ordered by the appearance of the
+  elements when created. cl("b","a") results in a factor with levels
+  "b" and "a". This can save quite some typing in data set
+  preparation.
+
+* New function: fnAppend - append a string to a file name before the
+  file name extension. fnAppend("data.csv","subset") results in
+  "data_subset.csv".
+
+* General support for a file.data argument when a specific input data
+  file is to be used instead of finding this information in the
+  control streams. This is very useful if you archive input data
+  together with a nonmem run in a way that the path in the control
+  stream has to be overruled. Like many other of this type of
+  arguments in NMdata, it can be a function that systematically
+  converts the path to the control stream to the input data
+  archive. Running Nonmem this way breaks the link between an input
+  dataset that may change over time and the model runs that become
+  self-contained packages of input and output data.
+
+* Support for NOHEADER option in Nonmem $TABLE blocks. If NMdata is
+  used to read the results, there is no need to use NOHEADER (which
+  opens the door to mistakes if manually renaming the columns in
+  results), but NMdata should now also be able to handle this. 
+
+* If found in data, CMT is added to the breakdown of rows when
+  summarizing results from NMscanData. Before, it was broken down on
+  EVID only. Also, a total line is included with total number of rows
+  in each of input-only, output, and result.
+
+* Support for non-event (say for $PRED) datasets in NMcheckData.
+
+* Support for custom column names for DV (col.dv) and MDV (col.mdv),
+  ID (col.ID), AMT (col.amt) in NMcheckData.
+
+* Support for file.mod and dir.data arguments in NMcheckData when
+  running on a control stream.
+
+* NMgenText now has an argument called until that specifies the last
+  column(s) to include in $INPUT.
+
+* compareCols takes the list.data argument same way as dims()
+  does. This is often easier to use in programming.
+
+* If NMgenText does not find any Nonmem-compatible columns to report,
+  it now throws a warning and returns NULL.
+
+## Bugfixes
+* NMextractDataFile was not cleaning all paths correctly. This mostly
+  impacts NMcheckData's ability to find data files when using the file
+  argument in NMcheckData. Only affects certain models.
+* NMextractDataFile was not working with dir.data. Fixed.
+* NMextractDataFile Now handles absolute paths correctly.
+
+## Minor changes 
+* compareCols now by default lists the columns where no differences
+  were found. 
+
+* NMreadTab throws a message instead of a warning in case duplicate
+  column names are found and removed.
+	  
+* NMwriteData now runs NMgenText in try, just in case.
+
+* fnExtension now supports adding extensions to strings without
+  extensions, i.e. fnExtension("file",".txt").
+
 # NMdata 0.0.11
 
 * The cols.num argument in NMcheckData has been improved to support a
@@ -29,6 +128,7 @@
   for possible tabulator characters. Fixed.
 
 # NMdata 0.0.10
+## New functions
 * NMcheckData is a new function that checks data for Nonmem
   compatibility in numerous ways. It returns a list of all findings
   making it easy to identify the location of each issue in the
@@ -41,6 +141,20 @@
   related to data and getting it into NONMEM. Great for both debugging
   and QC.
 
+* NMextractDataFile is a function that identifies the input datafile
+  used by a Nonmem model. It reports the string as in the Nonmem
+  control stream, file path and whether the file exists. It also looks
+  for the corresponding rds files. The function is not new in NMdata
+  but was not exported until 0.0.10.
+
+* cc is a function that creates character vectors from arguments
+  without quotes. This is just to be able to skip typing quotes when
+  listing say column names. So do cc(a,b,c) to get the exact same as
+  c("a","b","c"). You cannot do this with strings that contain special
+  characters. In that case do cc(a,"b+c") to get the same as
+  c("a","b+c").
+
+## Function improvements
 * NMwriteSection has been updated with a few very useful
   features. Namely these are related to updating multiple nonmem files
   at once. The user can now supply multiple paths, regular expressions
@@ -55,7 +169,7 @@
 
 * flagsAssign has got a few updates related to separate handling of
   different types of events. Often, this will be used to assign flags
-  to observations, doses etc. separately. You can easily speficy a
+  to observations, doses etc. separately. You can easily specify a
   subset of data to run flagsAssign on, and it will by default check
   for whether values of EVID are unique. This is similar to what
   flagsCount does.
@@ -63,18 +177,12 @@
 * NMgenText is a new function that provides the generation of $INPUT
   and $DATA. This used to be part of NMwriteData. NMwriteData still
   calls NMgenText but the separation of the two functionalities allows
-  for more inituitive separate uses of one dataset for different
+  for more intuitive separate uses of one dataset for different
   models. 
   
 * NMcompareCols now takes the argument "cols.wanted" which is a
   character vector of column names of special interest. Helpful when
   building a data set with specific column names in mind.
-
-* NMextractDataFile is a function that identifies the input datafile
-  used by a Nonmem model. It reports the string as in the Nonmem
-  control stream, file path and whether the file exists. It also looks
-  for the corresponding rds files. The function is not new in NMdata
-  but was not exported until 0.0.10.
 
 * egdt now reports dimensions of the two data sets to combine and the
   resulting data. Can be disabled with quiet argument.
@@ -106,7 +214,7 @@ that tests pass after the release of data.table v1.14.2.
   write meta data. Meta data is stored as an attribute to the data
   object (attributes(data)$NMdata).
 
-* Translation table includes a column ranking the match betwen input
+* Translation table includes a column ranking the match between input
   data file contents and $INPUT. OK: names match, diff: names do not
   match, off: diff and name is found elsewhere.
 
@@ -175,7 +283,7 @@ to be resolved for the merge to work as expected.
 
 Support for pseudonyms when translating input data column names based
 on nonmem control stream. Now by default, the column will be returned
-(doubled) with both peudonyms as column names.
+(doubled) with both pseudonyms as column names.
 
 new function - fnExtension is a simple function to replace the
 extension of a file name (say from file.mod to file.lst)
@@ -211,7 +319,7 @@ NMdataConf are: merge.by.row, col.flagn, col.flagc, use.input,
 recover.rows, col.model, modelname, file.mod, and check.time, quiet,
 use.rds.
 
-The tools to assign and cound exclusion flags, flagsAssign and
+The tools to assign and count exclusion flags, flagsAssign and
 flagsCount, have been improved. They now support working on a subset
 of data (say samples only), and the order (increasing/decreasing) of
 the exclusion flags is optional. The printing of the count of
@@ -240,7 +348,7 @@ number of columns added to df1 against expectation.
 
 egdt is a new function for expanding grids of data.tables. This is
 quite technical, and it fills a whole when constructing data with
-data.tables. It mimicks the behavior of merge.data.frame on objects
+data.tables. It mimics the behavior of merge.data.frame on objects
 with no common columns.
 
 ## Bugfixes related to 
@@ -259,7 +367,7 @@ names.
 
 The exclusion flag functions flagsAssign and flagsCount have been
 generalized to use customizable column names for the numerical and
-caracter flags. The default can be configured using NMdataConf.
+character flags. The default can be configured using NMdataConf.
 
 # NMdata 0.0.6.4
 If all common column names two data objects to merge are not used for
@@ -276,7 +384,7 @@ Meta information added about the input data.
 
 # NMdata 0.0.6.2
 A summary function is provided for NMdata objects. There is a print
-function for the summary too. This is printet automatically by NMdata
+function for the summary too. This is printed automatically by NMdata
 unless quiet=TRUE.
 
 A lot of meta information has been added in an attribute to NMdata
@@ -303,7 +411,7 @@ used for the individual functions too.
 The translation from the output control stream file path (.lst in PSN)
 and the input control stream (.mod in PSN) can now be configured
 through the option "NM.file.mod". Typically, all the models to be
-considered in an anlysis have been run on the same system, so it makes
+considered in an analysis have been run on the same system, so it makes
 most sense to define this behavior once and for all for most users.
 
 NMwriteData improved with checks of column names and automated
@@ -338,7 +446,7 @@ now treated like FIRSTONLY while FIRSTLASTONLY tables are disregarded
 The most obvious change since 0.0.3 is that only one data.table is
 being returned from NMscanData. This is what used to be the `row`
 element in the returned objects previously. The main reason for this
-change is that it makes it easier for users to postprocess only one
+change is that it makes it easier for users to post-process only one
 dataset before splitting into different levels of variability. The
 small cost is that the user will have to run findCovs, or findVars to
 get the desired level of variability. These functions are however very

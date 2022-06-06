@@ -6,19 +6,24 @@
 \usage{
 compareCols(
   ...,
-  keepNames = TRUE,
+  list.data,
+  keep.names = TRUE,
   testEqual = FALSE,
   diff.only = TRUE,
   cols.wanted,
   fun.class = base::class,
   quiet,
-  as.fun
+  as.fun,
+  keepNames
 )
 }
 \arguments{
 \item{...}{objects which element names to compare}
 
-\item{keepNames}{If TRUE, the original dataset names are used in
+\item{list.data}{As alternative to ..., you can supply the data
+sets in a list here.}
+
+\item{keep.names}{If TRUE, the original dataset names are used in
 reported table. If not, generic x1, x2,... are used. The
 latter may be preferred for readability.}
 
@@ -26,7 +31,7 @@ latter may be preferred for readability.}
 names of the two objects are the same? Default is FALSE which
 means to return an overview for interactive use. You might
 want to use TRUE in programming. However, notice that this
-check may be overly rigorous. Many classes are compitable
+check may be overly rigorous. Many classes are compatible
 enough (say numeric and integer), and compareCols doesn't take
 this into account.}
 
@@ -53,14 +58,16 @@ on what data is found. But consider setting this to TRUE for
 non-interactive use. Default can be configured using
 NMdataConf.}
 
-\item{as.fun}{A function that will be run un the result before
+\item{as.fun}{A function that will be run on the result before
 returning. If first input data set is a data.table, the
 default is to return a data.table, if not the default is to
 return a data.frame. Use whatever to get what fits in with
 your workflow. Default can be configured with NMdataConf.}
+
+\item{keepNames}{Deprecated. Use keep.names instead.}
 }
 \value{
-A data.frame with an overview of elementes and their
+A data.frame with an overview of elements and their
     classes of objects in ... Class as defined by as.fun.
 }
 \description{
@@ -70,7 +77,7 @@ or class across multiple datasets. Before running rbind, you may want
 to check the compatibility of the data.
 }
 \details{
-tecnically, this function compares classes of elements in
+technically, this function compares classes of elements in
     lists. However, in relation to NMdata, this will most of the
     time be columns in data.frames.
 }

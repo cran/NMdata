@@ -1,4 +1,13 @@
-##' Find and read input data and optionally translate column names according to the $INPUT section
+##' Find and read input data and optionally translate column names
+##' according to the $INPUT section
+##'
+##' This function finds and reads the input data based on a control
+##' stream file path. It can align the column names to the definitions
+##' in $INPUT in the control stream, and it can subset the data based
+##' on ACCEPT/IGNORE statements in $DATA. I supports a few other ways
+##' to identify the input data file than reading the control stream,
+##' and it can also read an rds file instead of the delimited text
+##' file used by Nonmem.
 ##' 
 ##' @description Based on a nonmem run (lst and/or mod file), this
 ##'     function finds the input data and reads it. It reads the data
@@ -37,7 +46,7 @@
 ##'     columns than mentioned in $INPUT, these will be named as in
 ##'     data file (if data file contains named variables).
 ##' @param recover.cols recover columns that were not used in the
-##'     NONMEM control stream? Default is TRUE. Can only be negtive
+##'     NONMEM control stream? Default is TRUE. Can only be negative
 ##'     when translate=FALSE.
 ##' @param details If TRUE, metadata is added to output. In this case,
 ##'     you get a list. Typically, this is mostly useful if
@@ -62,6 +71,8 @@
 ##' @param invert If TRUE, the data rows that are dismissed by the
 ##'     Nonmem data filters (ACCEPT and IGNORE) and only this will be
 ##'     returned. Only used if applyFilters is TRUE.
+##' @param file.data Specification of the data file path. When this is
+##'     used, the control streams are not used at all.
 ##' @details Columns that are dropped (using DROP or SKIP in $INPUT)
 ##'     in the model will be included in the output.
 ##'
@@ -76,11 +87,11 @@
 ##' @family DataRead
 ##' @export
 
-NMscanInput <- function(file, use.rds, file.mod,
-                        dir.data=NULL, applyFilters=FALSE, translate=TRUE,recover.cols=TRUE,
-                        details=TRUE, col.id="ID", col.row, quiet, args.fread,
-                        invert=FALSE,
-                        as.fun) {
+NMscanInput <- function(file, use.rds, file.mod, dir.data=NULL,
+                        file.data=NULL, applyFilters=FALSE,
+                        translate=TRUE,recover.cols=TRUE,
+                        details=TRUE, col.id="ID", col.row, quiet,
+                        args.fread, invert=FALSE, as.fun) {
     
 
 #### Section start: Dummy variables, only not to get NOTE's in pacakge checks ####
@@ -118,25 +129,10 @@ NMscanInput <- function(file, use.rds, file.mod,
     if(missing(args.fread)) args.fread <- NULL
     args.fread <- NMdataDecideOption("args.fread",args.fread)
     
-    if(!is.null(file.mod) && !is.null(dir.data)) {
-        messageWrap("Both file.mod and dir.data are non-NULL. Not allowed.",
-                    fun.msg=stop)
-    }
-    if(is.null(dir.data)) {
+
         
-        file.mod <- NMdataDecideOption("file.mod",file.mod)
-        file.find.data <- file.mod(file)
-
-        if(!file.exists(file.find.data)) {
-            
-            messageWrap("control stream (.mod) not found. Default is to look next to .lst file. See argument file.mod if you want to look elsewhere. If you don't have a .mod file, see the dir.data argument.  Input data not used.",fun.msg=warning)
-        }
-
-    }
-
-
     ## identify the data file name and additional info
-    info.datafile <- NMextractDataFile(file=file.find.data,dir.data,file.mod=file.mod)
+    info.datafile <- NMextractDataFile(file=file.find.data,dir.data,file.mod=file.mod,file.data=file.data)
     
     type.file <- NA_character_
     if(use.rds && info.datafile$exists.file.rds){
@@ -159,6 +155,7 @@ NMscanInput <- function(file, use.rds, file.mod,
     ## rows. This is used for very litle which should be done here
     ## instead of making a deep copy.
     data.input.0 <- copy(data.input)
+    
     nminfo.input.0 <- NMinfoDT(data.input)
 
     
@@ -184,11 +181,14 @@ NMscanInput <- function(file, use.rds, file.mod,
         
         meta <- list()
         meta$datafile <- info.datafile
-        
+        input.create.time <- NMinfo(data.input)$dataCreate$CreationTime
+        if(is.null(input.create.time)) input.create.time <- NA
+
         meta$tables <- data.table(
             source="input",
             file=path.data.input,
             file.mtime=file.mtime(path.data.input),
+            file.logtime=input.create.time,
             filetype=type.file,
             name=basename(path.data.input),
             nrow=nrow(data.input.0),
@@ -207,7 +207,7 @@ NMscanInput <- function(file, use.rds, file.mod,
             meta$tables$has.col.id <- col.id%in%meta$input.colnames[,result]
         }
 
-        setcolorder(meta$tables,intersect(c("source","name","nrow","ncol","firstonly","lastonly","firstlastonly","format","sep","nid","idlevel","has.row","maxLength","full.length","filetype","file.mtime","file"),colnames(meta$tables)))
+        setcolorder(meta$tables,intersect(c("source","name","nrow","ncol","firstonly","lastonly","firstlastonly","format","sep","nid","idlevel","has.row","maxLength","full.length","filetype","file.mtime","file.logtime","file"),colnames(meta$tables)))
 
         
         if(col.id%in%NMinfoDT(data.input,"input.colnames")[,result]) {

@@ -1,4 +1,5 @@
-##' Check data for Nonmem compatibility
+##' Check data for Nonmem compatibility or check control stream for
+##' data compatibility
 ##'
 ##' Check data in various ways for compatibility with Nonmem. Some
 ##' findings will be reported even if they will not make Nonmem fail
@@ -33,20 +34,36 @@
 ##' @param col.cmt The name(s) of the compartment column(s). These
 ##'     will be checked to be positive integers for all rows. They are
 ##'     also used in checks for row duplicates.
+##' @param col.amt The name of the dose amount column.
 ##' @param col.id The name of the column that holds the subject
 ##'     identifier. Default is "ID".
 ##' @param col.time The name of the column holding actual time.
+##' @param col.dv The name of the column holding the dependent
+##'     variable. For now, only one column can be specified, and MDV
+##'     is assumed to match this column. Default is DV.
+##' @param col.mdv The name of the column holding the binary indicator
+##'     of the dependent variable missing. Default is MDV.
 ##' @param col.flagn Optionally, the name of the column holding
 ##'     numeric exclusion flags. Default value is FLAG and can be
 ##'     configured using NMdataConf. Disable by using col.flagn=FALSE.
 ##' @param col.row A column with a unique value for each row. Such a
 ##'     column is recommended to use if possible. Default ("ROW") can
 ##'     be modified using NMdataConf.
+##' @param col.usubjid Optional unique subject identifier. It is
+##'     recommended to keep a unique subject identifier (typically a
+##'     character string including an abbreviated study name and the
+##'     subject id) from the clinical datasets in the analysis set. If
+##'     you supply the name of the column holding this identifier,
+##'     NMcheckData will check that it is non-missing, that it is
+##'     unique within values of col.id (i.e. that the analysis subject
+##'     ID's are unique across actual subjects), and that col.id is
+##'     unique within the unique subject ID (a violation of the latter
+##'     is less likely).
 ##' @param na.strings Strings to be accepted when trying to convert
 ##'     characters to numerics. This will typically be a string that
-##'     represents missing values. Default is "." even though most
-##'     users will use actual NA (NA_character), i.e. not a
-##'     string. See ?NMisNumeric.
+##'     represents missing values. Default is ".". Notice, actual NA,
+##'     i.e. not a string, is allowed independently of na.strings. See
+##'     ?NMisNumeric.
 ##' @param return.summary If TRUE (not default), the table summary
 ##'     that is printed if quiet=FALSE is returned as well. In that
 ##'     case, a list is returned, and the findings are in an element
@@ -115,7 +132,7 @@
 ##'
 ##' \item all ID's must have observations (EVID==0)
 ##'
-##' \item If a unqique row identifier is used, this must be
+##' \item If a unique row identifier is used, this must be
 ##'     non-missing, increasing, integer
 ##'
 ##' \item Character values must not contain commas (they will mess up
@@ -143,7 +160,7 @@
 ##' @export
 
 
-NMcheckData <- function(data,file,covs,covs.occ,cols.num,col.id="ID",col.time="TIME",col.cmt="CMT",col.flagn,col.row,na.strings,return.summary=FALSE,quiet=FALSE,as.fun){
+NMcheckData <- function(data,file,covs,covs.occ,cols.num,col.id="ID",col.time="TIME",col.dv="DV",col.mdv="MDV",col.cmt="CMT",col.amt="AMT",col.flagn,col.row,col.usubjid,na.strings,return.summary=FALSE,quiet=FALSE,as.fun){
 
     
 #### Section start: Dummy variables, only not to get NOTE's in pacakge checks ####
@@ -174,10 +191,13 @@ NMcheckData <- function(data,file,covs,covs.occ,cols.num,col.id="ID",col.time="T
     occ <- NULL
     reset <- NULL
     variable <- NULL
+    NUID <- NULL
+    NidByUID <- NULL
+    usubjNotUnique <- NULL
     
 ### Section end: Dummy variables, only not to get NOTE's in pacakge checks
 
-
+    
 #### Section start: Checks of arguments ####
     
     if(missing(covs)) covs <- NULL
@@ -202,7 +222,7 @@ NMcheckData <- function(data,file,covs,covs.occ,cols.num,col.id="ID",col.time="T
     if(!is.null(cols.num) && !is.list(cols.num) ){
         cols.num <- list("TRUE"=cols.num)
     }
-    
+
     names.cols.num <- names(cols.num)
     
     if(length(cols.num)>0){
@@ -229,6 +249,12 @@ NMcheckData <- function(data,file,covs,covs.occ,cols.num,col.id="ID",col.time="T
     }
     
 
+    if(!(is.character(col.dv)&&length(col.dv)==1)){
+        stop("col.dv must be a character and vector of length 1.")
+    }
+    if(!(is.character(col.mdv)&&length(col.mdv)==1)){
+        stop("col.mdv must be a character and vector of length 1.")
+    }
     
     if(is.null(file)){
         if(missing(data)||is.null(data)) {
@@ -287,7 +313,7 @@ NMcheckData <- function(data,file,covs,covs.occ,cols.num,col.id="ID",col.time="T
 
     ## listEvents is for row-level findings
     ## @param col is the actual column to be used for the condition
-    ## @param name 
+    ## @param name The name of the check. Will end up in the check column in the resulting table.
     ## @param fun if fun does not return TRUE, we have a finding.
     ## @param colname is the column name reported to user.
 
@@ -300,7 +326,7 @@ NMcheckData <- function(data,file,covs,covs.occ,cols.num,col.id="ID",col.time="T
 
         if(!col%in%colnames(dat)){
             if(col.required){
-                if(events[check=="Column not found"&column==colname&level=="column",.N]==0){
+                if(is.null(events)||events[check=="Column not found"&column==colname&level=="column",.N]==0){
                     events <- rbind(events,
                                     data.table(check="Column not found",column=colname,level="column")
                                    ,fill=TRUE) }
@@ -322,7 +348,11 @@ NMcheckData <- function(data,file,covs,covs.occ,cols.num,col.id="ID",col.time="T
             if(new.rows.only&&!is.null(events)){
                 rows <- setdiff(rows,events[column==colname,row])
             }
-            res <- data.table(check=name,column=colname,row=rows,level="row")
+            if(length(rows)>0){
+                res <- data.table(check=name,column=colname,row=rows,level="row")
+            } else {
+                res <- NULL
+            }
         }
         rbind(events,res,fill=TRUE)
     }
@@ -399,6 +429,7 @@ NMcheckData <- function(data,file,covs,covs.occ,cols.num,col.id="ID",col.time="T
         findings <- rbind(findings,
                           data.table(check="Special character in column name",column=cnames.spchars,row=NA_integer_,level="column"))
     }
+### check for na.strings in numeric columns encoded as character. 
 
 ####### End checking column names
 
@@ -437,6 +468,7 @@ NMcheckData <- function(data,file,covs,covs.occ,cols.num,col.id="ID",col.time="T
         findings <- listEvents(col.row,"Row identifier decreasing",
                                fun=function(x)!is.na(c(1,diff(x))) & c(1,diff(x))>0,
                                events=findings,debug=FALSE)
+        
         findings <- listEvents(col.row,"Duplicated",
                                fun=function(x)!is.na(x)&!duplicated(x),events=findings,
                                new.rows.only=T,debug=FALSE)
@@ -458,7 +490,7 @@ NMcheckData <- function(data,file,covs,covs.occ,cols.num,col.id="ID",col.time="T
                                events=findings,
                                new.rows.only=T)
         findings <- listEvents(col.flagn,"col.flagn not an integer",
-                               fun=function(x)x%%1==0,events=findings,
+                               fun=function(x)as.numeric(x)%%1==0,events=findings,
                                new.rows.only=T)
         if(col.flagn%in%colnames(data)){
 
@@ -501,7 +533,7 @@ NMcheckData <- function(data,file,covs,covs.occ,cols.num,col.id="ID",col.time="T
     
 ######## Default numeric columns. Will be checked for presence, NA, non-numeric (col-level)
 ### Others that: If column present, must be numeric, and values must be non-NA. Remember eg DV, CMT and AMT can be NA.
-    cols.num.all <- c( col.time,"EVID","ID","MDV",
+    cols.num.all <- c( col.time,"EVID",col.id,col.mdv,col.flagn,
                       covs,names(covs.occ),as.character(unlist(covs.occ)))
     cols.num.all <- unique(cols.num.all)
 ### check for missing in cols.num.all
@@ -559,37 +591,33 @@ NMcheckData <- function(data,file,covs,covs.occ,cols.num,col.id="ID",col.time="T
     findings <- listEvents("EVID","EVID not in 0:4",function(x) x%in%c(0:4),events=findings)
     
 ### ID must be a positive integer
-    findings <- listEvents("ID","ID not a positive integer",
+    findings <- listEvents(col.id,paste(col.id,"not a positive integer"),
                            fun=function(x)x>0&x%%1==0,events=findings,
                            new.rows.only=T)
 
     
 ### MDV should perfectly reflect is.na(DV)
-    if("MDV"%in%colnames(data)){
+    if(col.mdv%in%colnames(data)){
         
-        data[,MDVDV:=!is.na(MDV)&MDV==as.numeric(is.na(DV))]
-        findings <- listEvents("MDVDV","MDV does not match DV",colname="MDV",fun=function(x)x==TRUE,events=findings)
+        data[,MDVDV:=!is.na(get(col.mdv))&get(col.mdv)==as.numeric(is.na(get(col.dv)))]
+        findings <- listEvents("MDVDV","MDV does not match DV",colname=col.mdv,fun=function(x)x==TRUE,events=findings)
     }
 
 ###  columns that are required for all rows done
 
 #### all other required columns (NA elements OK). Run NMisNumeric for each element, then translate using NMasNumeric
     
-    cols.req <- c(col.cmt,cc(DV,AMT))
+    cols.req <- c(col.cmt,col.dv,col.amt)
     for(col in cols.req){
         findings <- listEvents(col,name="Not numeric",fun=function(x)NMisNumeric(x,na.strings=na.strings,each=TRUE),
                                new.rows.only=T,events=findings)
     }
-    ## newfinds <- rbindlist( lapply(cols.req,listEvents,name="Not numeric",
-    ##                               fun=function(x)NMisNumeric(x,na.strings=na.strings,each=TRUE),
-    ##                               new.rows.only=T)
-    ##                       )
-    ## findings <- rbind(findings,
-    ##                   newfinds
-    ##                  ,fill=TRUE)
+    
     cols.req.found <- intersect(cols.req,colnames(data))
-    data[,(cols.req.found):=lapply(.SD,NMasNumeric),.SDcols=cols.req.found]
-
+    if(length(cols.req.found)){
+        data[,(cols.req.found):=lapply(.SD,NMasNumeric),.SDcols=cols.req.found]
+    }
+    
     for(cmt in col.cmt){
 ### CMT must be a positive integer. It can be missing for CMT=3
         findings <- listEvents(cmt,"Missing for EVID!=3",
@@ -612,24 +640,24 @@ NMcheckData <- function(data,file,covs,covs.occ,cols.num,col.id="ID",col.time="T
 ###### DV
 ### DV must be present
 ### DV must be numeric for EVID==0
-    findings <- listEvents("DV","DV not numeric",fun=is.na,events=findings,invert=TRUE,dat=data[EVID%in%c(0)])
+    findings <- listEvents(col.dv,"DV not numeric",fun=is.na,events=findings,invert=TRUE,dat=data[EVID%in%c(0)])
 
 ### DV should be NA for dosing records
-    findings <- listEvents("DV","DV not NA in dosing recs",fun=is.na,events=findings,dat=data[EVID%in%c(1,4)])
+    findings <- listEvents(col.dv,"DV not NA in dosing recs",fun=is.na,events=findings,dat=data[EVID%in%c(1,4)])
 
 
 #### AMT
     ## must be numeric
-    findings <- listEvents("AMT",name="Not numeric",
+    findings <- listEvents(col.amt,name="Not numeric",
                            fun=function(x)NMisNumeric(x,na.strings=na.strings,each=TRUE),
                            events=findings,                           
                            dat=data) 
     ## positive for EVID 1 and 4
-    findings <- listEvents("AMT","Non-positive dose amounts",
+    findings <- listEvents(col.amt,"Non-positive dose amounts",
                            fun=function(x)x>0,events=findings,
                            dat=data[EVID%in%c(1,4)])
     ## must be 0 or NA for EVID 0 and 2
-    findings <- listEvents("AMT","Non-zero dose for obs or sim record",
+    findings <- listEvents(col.amt,"Non-zero dose for obs or sim record",
                            fun=function(x)is.na(x)|x==0,
                            events=findings,
                            dat=data[EVID%in%c(0,2)])
@@ -693,12 +721,12 @@ NMcheckData <- function(data,file,covs,covs.occ,cols.num,col.id="ID",col.time="T
     
 
 ######## End Default columns
-
+    
 
     ## ID-level checks
 ### Warning if the same ID is in non-consequtive rows
     data[,ID.jump:=c(0,diff(get(rowint))),by=col.id]
-    findings <- listEvents("ID.jump",colname="ID",name="ID disjoint",fun=function(x) x<=1,events=findings)
+    findings <- listEvents("ID.jump",colname=col.id,name="ID disjoint",fun=function(x) x<=1,events=findings,debug=FALSE)
 
     
     
@@ -708,38 +736,33 @@ NMcheckData <- function(data,file,covs,covs.occ,cols.num,col.id="ID",col.time="T
         
         data[,isnewID:=get(col.id)!=shift(get(col.id),n=1)]
         data[1,isnewID:=TRUE]
-        data[,reset:=EVID%in%c(3,4)]
+        data[,reset:=FALSE]
+        if("EVID"%in%colnames(data)){
+            data[,reset:=EVID%in%c(3,4)]
+        }
         data[,newID:=cumsum(as.numeric(isnewID)+as.numeric(reset))]
         data[,checkTimeInc:=c(TRUE,diff(get(col.time))>=0),by=.(newID)]
         
         findings <- listEvents(col="checkTimeInc",name="Time decreasing",fun=function(x) x==TRUE,
-                               colname="TIME",events=findings)
+                               colname=col.time,events=findings)
     }
     
-    
-    ## if(any(cols.cmt %in% colnames(data))){
-    ##     data.rep <- melt(data,measure.vars=cols.cmt,variable.name="col.cmt",value.name="CMT")        
-    ##     cols.cmt.rep <- "col.cmt"
-    ## } else {
-    ##     data.rep <- data
-    ##     cols.cmt.rep <- NULL
-    ## }
-    ## data.rep[,Nrep:=.N,by=intersect(c("newID",col.cmt.rep,"EVID",col.time),colnames(data))]
-
-    ## data[,Nrep:=.N,by=intersect(c("newID","CMT","EVID",col.time),colnames(data))]    
-    ## findings <- listEvents(col="Nrep",name="Duplicated event",function(x) x<2,colname=paste(col.id,"CMT, EVID", col.time,sep=", "),events=findings)
-
+### check for duplicate events
     col.cmt.found <- intersect(col.cmt,colnames(data))
     nruns <- length(col.cmt.found)
     if(length(col.cmt.found)==0){
         col.cmt.found <- NULL
         nruns <- 1
-    } 
+    }
+    nfindings <- findings[,.N]
     for(count.cmt in 1:nruns){
         
         data[,Nrep:=.N,by=intersect(c("newID",col.cmt.found[count.cmt],"EVID",col.time),colnames(data))]
-        
         findings <- listEvents(col="Nrep",name="Duplicated event",function(x) x<2,colname=paste(c(col.id,col.cmt.found[count.cmt], "EVID", col.time),collapse=", "),events=findings)
+    }
+    nfindings.new <- findings[,.N]
+    if(count.cmt>1 && nfindings.new>nfindings){
+        messageWrap("Due to multiple CMT columns, duplicate events may be reported with respect to each of these columns.",fun.msg=message)
     }
     
     if("EVID"%in%colnames(data)){
@@ -793,7 +816,7 @@ NMcheckData <- function(data,file,covs,covs.occ,cols.num,col.id="ID",col.time="T
             ncomb.cov
         },by=.(ROW)]
         
-                                        # findings.occ <- rbindlist(list.findings.occ)
+        ## findings.occ <- rbindlist(list.findings.occ)
         findings.occ[,ROW:=NULL]
         if(length(findings.occ)>0){
             findings <- rbind(findings,findings.occ,fill=TRUE)
@@ -801,6 +824,43 @@ NMcheckData <- function(data,file,covs,covs.occ,cols.num,col.id="ID",col.time="T
     }
     
 ### Section end: Covariates
+
+
+#### Section start: usubjid ####
+
+    if(!missing(col.usubjid)&&!is.null(col.usubjid)){
+        findings <- listEvents(col=col.usubjid,name="Missing value",
+                               fun=function(x){
+                                   !is.na(x) &
+                                       !(as.character(x)%in%unique(c("",na.strings)))
+                               },
+                               events=findings)
+
+        ## check . All ID values must be represented exactly once. If not, report an ID=level finding.
+        ## how many usubjids for each ID?
+        data[,NUID:=uniqueN(col.usubjid),by=c(col.id)]
+        ## how many IDs for each usubjid?
+        data[,NidByUID:=uniqueN(get(col.id)),by=c(col.usubjid)]
+        data[,usubjNotUnique:=max(NidByUID)>1,by=c(col.id)]
+        
+        if(data[,sum(NUID>1)]){
+            findings <- rbind(findings ,
+                              data.table(check="Unique subject ID not unique within ID",column=col.usubjid,ID=data[NUID>1,get(col.id)],level="ID") ,
+                              fill=TRUE)
+        }
+
+        if(data[,any(usubjNotUnique)]){
+            findings <- rbind(findings,
+                              data.table(check="Subject ID not unique within unique subject IDs",column=col.id,ID=data[usubjNotUnique==TRUE,get(col.id)],level="ID"),
+                              fill=TRUE)
+        }
+        
+    }
+    
+### Section end: usubjid
+
+
+    
 
     return(reportFindings(findings=findings,data=data,col.id=col.id,c.row=c.row,col.row=col.row,col.row.orig=col.row.orig,col.id.orig=col.id.orig,return.summary=return.summary,as.fun=as.fun,quiet=quiet))
 

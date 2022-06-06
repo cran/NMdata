@@ -73,6 +73,12 @@ be a string too, but when using NMdataConf, this would make little sense
 because it would direct all output control streams to the same input control
 streams.
 
+\item{file.data} A function that will derive the path to the input
+data based on the path to the output control stream. Technically,
+it can be a string too, but when using NMdataConf, this would make
+little sense because it would direct all output control streams to
+the same input control streams.
+
 \item{merge.by.row} Adjust the default combine method in
 NMscanData.
 
@@ -109,7 +115,7 @@ If no arguments given, a list of active settings. If
 Configure default behavior across the functions in NMdata rather
 than typing the arguments in all function calls. Configure for
 your file organization, data set column names, and other NMdata
-behaviour. Also, you can control what data class NMdata functions
+behavior. Also, you can control what data class NMdata functions
 return (say data.tables or tibbles if you prefer one of those over
 data.frames).
 }

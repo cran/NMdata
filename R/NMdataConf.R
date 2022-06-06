@@ -3,7 +3,7 @@
 ##' Configure default behavior across the functions in NMdata rather
 ##' than typing the arguments in all function calls. Configure for
 ##' your file organization, data set column names, and other NMdata
-##' behaviour. Also, you can control what data class NMdata functions
+##' behavior. Also, you can control what data class NMdata functions
 ##' return (say data.tables or tibbles if you prefer one of those over
 ##' data.frames).
 ##'
@@ -72,6 +72,12 @@
 ##' be a string too, but when using NMdataConf, this would make little sense
 ##' because it would direct all output control streams to the same input control
 ##' streams.
+##'
+##' \item{file.data} A function that will derive the path to the input
+##' data based on the path to the output control stream. Technically,
+##' it can be a string too, but when using NMdataConf, this would make
+##' little sense because it would direct all output control streams to
+##' the same input control streams.
 ##' 
 ##' \item{merge.by.row} Adjust the default combine method in
 ##' NMscanData.
@@ -217,7 +223,6 @@ NMdataConfOptions <- function(name){
                   ## return(identity)
                   ## this is a trick to ensure data.tables are printed first time
                   return(function(DT)DT[])
-
               }
               x
           }
@@ -228,6 +233,14 @@ NMdataConfOptions <- function(name){
             ## has to be length 1 character or function
            ,is.allowed=is.logical
            ,msg.not.allowed="check.time must be logical"
+           ,process=identity
+        )
+       ,
+        tz.lst=list(
+            default=NULL
+            ## has to be length 1 character or function
+           ,is.allowed=function(x)is.null(x)||(is.character(x)&&length(x)==1)
+           ,msg.not.allowed="tz.lst must be a character vector of lenght 1."
            ,process=identity
         )
        ,
@@ -285,6 +298,17 @@ NMdataConfOptions <- function(name){
            ,msg.not.allowed="file.mod must be a function or a character of length 1"
            ,process=function(x) {
                if(is.character(x)) return(function(file) x)
+               x
+           }
+        )
+       ,
+        file.data=list(
+            default="extract"
+            ## has to be length 1 character or function
+           ,is.allowed=function(x) is.function(x) || (length(x)==1 && is.character(x))
+           ,msg.not.allowed="file.data must be NULL, a function or a character of length 1. To force extracting data file from control stream, use file.data=\"extract\"."
+           ,process=function(x) {
+               if(is.character(x)&&x!="extract") return(function(file) x)
                x
            }
         )

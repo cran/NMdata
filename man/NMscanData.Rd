@@ -12,6 +12,7 @@ NMscanData(
   recover.rows,
   file.mod,
   dir.data,
+  file.data,
   translate.input = TRUE,
   quiet,
   use.rds,
@@ -23,7 +24,8 @@ NMscanData(
   col.nmout,
   tab.count = FALSE,
   order.columns = TRUE,
-  check.time
+  check.time,
+  tz.lst
 )
 }
 \arguments{
@@ -43,7 +45,7 @@ modified using NMdataConf. See merge.by.row too.}
 \item{merge.by.row}{If use.input=TRUE, this argument determines
 the method by which the input data is added to output
 data. The default method (merge.by.row=FALSE) is to interpret
-the Nonmem code to immitate the data filtering (IGNORE and
+the Nonmem code to imitate the data filtering (IGNORE and
 ACCEPT statements), but the recommended method is
 merge.by.row=TRUE which means that data will be merged by a
 unique row identifier. The row identifier must be present in
@@ -69,6 +71,9 @@ control stream (.mod) and not from the output file (.lst). So
 if you only have the output control stream, use dir.data to
 tell in which directory to find the data file. If dir.data is
 provided, the .mod file is not used at all.}
+
+\item{file.data}{Specification of the data file path. When this is
+used, the control streams are not used at all.}
 
 \item{translate.input}{Default is TRUE, meaning that input data
 column names are translated according to $INPUT section in
@@ -130,7 +135,7 @@ called TABLENO. The argument is passed to NMscanTables.}
 \item{order.columns}{If TRUE (default), NMorderColumns is used to
 reorder the columns before returning the data. NMorderColumns
 will be called with alpha=FALSE, so columns are not sorted
-alphebetically. But standard Nonmem columns like ID, TIME, and
+alphabetically. But standard Nonmem columns like ID, TIME, and
 other will be first. If col.row is used, this will be passed
 to NMorderColumns too.}
 
@@ -138,10 +143,19 @@ to NMorderColumns too.}
 input control stream and input data are checked to be newer
 than output control stream and output tables. These are
 important assumptions for the way information is merged by
-NMscanData. However, if data has been transfered from another
+NMscanData. However, if data has been transferred from another
 system where Nonmem was run, these checks may not make sense,
 and you may not want to see these warnings. The default can be
-configured using NMdataConf.}
+configured using NMdataConf. For the output control stream,
+the time stamp recorded by Nonmem is used if possible, and if
+the input data is created with NMwriteData, the recorded
+creation time is used if possible. If not, and for all other
+files, the file modification times are used.}
+
+\item{tz.lst}{If supplied, the timezone to be used when reading
+the time stamp in the output control stream. Please supply
+something listed in OlsonNames(). Can be configured using
+NMdataConf() too.}
 }
 \value{
 A data set of class 'NMdata'.
@@ -177,7 +191,7 @@ of this can be overcome by using merge.by.row=TRUE. Incomplete
 list of known limitations:
 
 \itemize{
- \item{character TIME}{If Nonmem is used to translate DAY and a charater TIME column, TIME has to be available in an output table. NMscanData does not do the translation to numeric.}
+ \item{character TIME}{If Nonmem is used to translate DAY and a character TIME column, TIME has to be available in an output table. NMscanData does not do the translation to numeric.}
  \item{RECORDS}{The RECORDS option to limit the part of the input data being used is not searched for. Using merge.by.row=TRUE will work unaffectedly.}
  \item{NULL}{The NULL argument to specify missing value string in input data is not respected. If delimited input data is read (as opposed to rds files), missing values are assumed to be represented by dots (.).}
 }

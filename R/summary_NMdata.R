@@ -14,6 +14,7 @@ summary.NMdata <- function(object,...){
     
 #### Section start: Dummy variables, only not to get NOTE's in pacakge checks ####
 
+    CMT <- NULL
     EVID <- NULL
     ID <- NULL
     N.ids <- NULL
@@ -40,7 +41,7 @@ summary.NMdata <- function(object,...){
         NMi <- NMinfoDT(data)
         data <- as.data.table(data)
         writeNMinfo(data,NMi)
-        }
+    }
     ## derive how many subjects. Need to 
 
     
@@ -71,7 +72,11 @@ summary.NMdata <- function(object,...){
     s1$N.rows <- data[,list(N.rows=.N),by="nmout"]
     s1$N.evids <- NA
     if("EVID"%in%colnames(data)){
-        s1$N.evids <- data[,.N,by=list(nmout,EVID)]
+        if("CMT"%in%colnames(data)){
+            s1$N.evids <- data[,.N,by=list(nmout,EVID,CMT)]
+        } else {
+            s1$N.evids <- data[,.N,by=list(nmout,EVID)]
+        }
     }
     
     setattr(s1,"class",c("summary_NMdata",class(s1)))
@@ -93,6 +98,9 @@ print.summary_NMdata <- function(x,...){
     
     . <- NULL
     COLNUM <- NULL
+    CMT <- NULL
+    EVID <- NULL
+    NMOUT <- NULL
     included <- NULL
     inc <- NULL
     not <- NULL
@@ -102,7 +110,6 @@ print.summary_NMdata <- function(x,...){
     level <- NULL
     N <- NULL
     nid <- NULL
-    NMOUT <- NULL
     nrow.used <- NULL
     nmout <- NULL
     N.rows <- NULL
@@ -183,7 +190,7 @@ print.summary_NMdata <- function(x,...){
     vars.sum2 <- rbind(vars.sum2,row.res)
     
 #### other info to include. 
-    dt.nmout <- data.table(nmout=c(TRUE,FALSE),NMOUT=c("Output","Input only"))
+    dt.nmout <- data.table(nmout=c(TRUE,FALSE),NMOUT=c("output","input-only"))
 
     ## how many ids (broken down on output vs. input-only)
     
@@ -201,9 +208,13 @@ print.summary_NMdata <- function(x,...){
     ## model name
     cat("Model: ",x$details$model,"\n")
 
+    ## overview of processed tables
+    cat("\nUsed tables, contents shown as used/total:\n")
+    print(vars.sum2,row.names=FALSE)
+
     if(x$details$input.used){
         if(x$details$merge.by.row){
-            cat("Input and output data merged by:",x$details$col.row,"\n")
+            cat("\nInput and output data merged by:",x$details$col.row,"\n")
         } else {
             message("Input and output data combined by translation of
 Nonmem data filters (not recommended).")
@@ -211,10 +222,7 @@ Nonmem data filters (not recommended).")
     } else {
         cat("Input data not used.\n")
     }
-
-    cat("\nUsed tables, contents shown as used/total:\n")
-    print(vars.sum2,row.names=FALSE)
-
+    
     ## cat("\nNumbers of rows and subjects\n")
     ## print(n5,row.names=FALSE,...)
     cat("\n")
@@ -223,13 +231,26 @@ Nonmem data filters (not recommended).")
         ## how many rows in output (broken down on EVID)
 
         ## if rows recovered, how many (broken down on EVID)
-        evids1 <- mergeCheck(x$N.evids,dt.nmout,by="nmout",all.x=TRUE,quiet=TRUE)
-        
-        evids2 <- dcast(evids1,EVID~NMOUT,value.var="N")
-        evids2[is.na(evids2)] <- 0
-        
-        cat("Distribution of rows on event types in returned data:\n")
-        print(evids2,row.names=FALSE)
+        try({
+
+            evids1 <- mergeCheck(x$N.evids,dt.nmout,by="nmout",all.x=TRUE,quiet=TRUE)
+            cols.bd <- intersect(cc(EVID,CMT),colnames(evids1))
+            evids1.rep <- rbind(evids1,evids1[,.(NMOUT="result",N=sum(N)),by=cols.bd],fill=T)
+            evids1.sum <- evids1.rep[,.(EVID="All",CMT="All",N=sum(N)),by="NMOUT"]
+
+            evids1.sum[,(cols.bd):="All"]
+            evids1.rep2 <- rbind(evids1.rep,evids1.sum,fill=T)
+            if("CMT" %in% colnames(evids1.rep2)) {
+                evids2 <- dcast(evids1.rep2,EVID+CMT~NMOUT,value.var="N",fill=0)
+            } else {
+                evids2 <- dcast(evids1.rep2,EVID~NMOUT,value.var="N",fill=0)
+            }
+            setcolorder(evids2,
+                        neworder=intersect(cc(EVID,CMT,"input-only","output","result"),colnames(evids2)))
+
+            cat("Distribution of rows on event types in returned data:\n")
+            print(evids2,row.names=FALSE)
+        })
     }        
 
     return(invisible(NULL))

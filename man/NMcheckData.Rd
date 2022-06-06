@@ -2,7 +2,8 @@
 % Please edit documentation in R/NMcheckData.R
 \name{NMcheckData}
 \alias{NMcheckData}
-\title{Check data for Nonmem compatibility}
+\title{Check data for Nonmem compatibility or check control stream for
+data compatibility}
 \usage{
 NMcheckData(
   data,
@@ -12,9 +13,13 @@ NMcheckData(
   cols.num,
   col.id = "ID",
   col.time = "TIME",
+  col.dv = "DV",
+  col.mdv = "MDV",
   col.cmt = "CMT",
+  col.amt = "AMT",
   col.flagn,
   col.row,
+  col.usubjid,
   na.strings,
   return.summary = FALSE,
   quiet = FALSE,
@@ -58,9 +63,18 @@ identifier. Default is "ID".}
 
 \item{col.time}{The name of the column holding actual time.}
 
+\item{col.dv}{The name of the column holding the dependent
+variable. For now, only one column can be specified, and MDV
+is assumed to match this column. Default is DV.}
+
+\item{col.mdv}{The name of the column holding the binary indicator
+of the dependent variable missing. Default is MDV.}
+
 \item{col.cmt}{The name(s) of the compartment column(s). These
 will be checked to be positive integers for all rows. They are
 also used in checks for row duplicates.}
+
+\item{col.amt}{The name of the dose amount column.}
 
 \item{col.flagn}{Optionally, the name of the column holding
 numeric exclusion flags. Default value is FLAG and can be
@@ -70,11 +84,22 @@ configured using NMdataConf. Disable by using col.flagn=FALSE.}
 column is recommended to use if possible. Default ("ROW") can
 be modified using NMdataConf.}
 
+\item{col.usubjid}{Optional unique subject identifier. It is
+recommended to keep a unique subject identifier (typically a
+character string including an abbreviated study name and the
+subject id) from the clinical datasets in the analysis set. If
+you supply the name of the column holding this identifier,
+NMcheckData will check that it is non-missing, that it is
+unique within values of col.id (i.e. that the analysis subject
+ID's are unique across actual subjects), and that col.id is
+unique within the unique subject ID (a violation of the latter
+is less likely).}
+
 \item{na.strings}{Strings to be accepted when trying to convert
 characters to numerics. This will typically be a string that
-represents missing values. Default is "." even though most
-users will use actual NA (NA_character), i.e. not a
-string. See ?NMisNumeric.}
+represents missing values. Default is ".". Notice, actual NA,
+i.e. not a string, is allowed independently of na.strings. See
+?NMisNumeric.}
 
 \item{return.summary}{If TRUE (not default), the table summary
 that is printed if quiet=FALSE is returned as well. In that
@@ -153,7 +178,7 @@ records. ADDL must be present.
 
 \item all ID's must have observations (EVID==0)
 
-\item If a unqique row identifier is used, this must be
+\item If a unique row identifier is used, this must be
     non-missing, increasing, integer
 
 \item Character values must not contain commas (they will mess up

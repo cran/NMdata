@@ -22,8 +22,10 @@
 ##' @param list.sections Named list of new sections, each element
 ##'     containing a section. Names must be section names, contents of
 ##'     each element are the new section lines for each section.
-##' @param newfile path to new run. If missing, path is used. If NULL,
-##'     output is returned rather than written.
+##' @param newfile path and filename to new run. If missing, the original
+##'     file (from \code{files} or \code{file.pattern}) is overwritten
+##'     (see the \code{backup} option below). If NULL, output is returned
+##'     as a character vector rather than written.
 ##' @param backup In case you are overwriting the old file, do you
 ##'     want to backup the file (to say, backup_run001.mod)?
 ##' @param blank.append Append a blank line to output?
@@ -51,6 +53,12 @@
 ##' newlines <- "$EST POSTHOC INTERACTION METHOD=1 NOABORT PRINT=5 MAXEVAL=9999 SIG=3"
 ##' NMwriteSection(files=system.file("examples/nonmem/xgxr001.mod", package = "NMdata"),
 ##' section="EST", newlines=newlines,newfile=NULL)
+##' \dontrun{
+##' text.nm <- NMwriteData(data)
+##' NMwriteSection(dir="nonmem",
+##'               file.pattern="^run.*\\.mod",
+##'               list.sections=text.nm["INPUT"])
+##' }
 ##' @export
 
 
@@ -62,34 +70,13 @@ NMwriteSection <- function(files,file.pattern,dir,section,newlines,list.sections
 #### Section start: handle arguments ####
     if(missing(quiet)) quiet <- NULL
     quiet <- NMdataDecideOption("quiet",quiet)
-    
-    ## supply either file or file.pattern. dir only allowed if file.pattern
-    if( missing(files) && missing(file.pattern) ){
-        stop("You have to supply either file or file.pattern")
-    }
-    if(!missing(files)&& (!missing(file.pattern) || !missing(dir))){
-        stop("If supplying files, file.pattern and dir cannot be used")
-    }
-    if(!missing(file.pattern)&&missing(dir)){
-        stop("If using file.pattern, you have to supply dir too.")
-    }
-    
-    if(!missing(files)&&length(files)>0){
-        
-        if(any(!file.exists(files))){
-            if(!quiet){
-                message("Files not found. Skipping:\n",paste(files[!file.exists(files)],collapse="\n"))
-            }
-        }
-        all.files <- files[file.exists(files)]
-    }
-    
-    
-    if(!missing(file.pattern)){
-        all.files <- list.files(path=dir,pattern=file.pattern,full.names=TRUE,recursive=FALSE)
 
-    }
-    
+    if(missing(files)) files <- NULL
+    if(missing(dir)) dir <- NULL
+    if(missing(file.pattern)) file.pattern <- NULL
+   
+    all.files <- getFilePaths(files=files,file.pattern=file.pattern,dir=dir,quiet=quiet)
+
     if(length(all.files)==0){
         message("No existing files matched. Nothing to do.")
         return(invisible(NULL))
@@ -184,9 +171,16 @@ NMwriteSection <- function(files,file.pattern,dir,section,newlines,list.sections
         
         if(is.null(newfile)) return(newlines)
         
-        if(file0==newfile && backup ) file.copy (file0,
-                                                sub("(.+/)([^/].+$)","\\1backup_\\2",x=file0)
-                                                )
+        if(file0==newfile && backup ) {
+            dir.backup <- file.path(dirname(file0),"NMdata_backup")
+            ## make sure backup dir exists
+            if(file.exists(dir.backup)&&!dir.exists(dir.backup)) messageWrap("Something called NMdata_backup is found and it is not a directory. Please remove or use backup=FALSE.",fun.msg=stop)
+            if(!dir.exists(dir.backup)) dir.create(dir.backup)
+            ## file.copy (file0,
+            ##            sub("(.+/)([^/].+$)","\\1backup_\\2",x=file0)
+            ##            )
+            file.copy(file0,dir.backup,overwrite=T)
+        }
 
         if(!write||is.null(file)){
             return(newlines)
@@ -201,8 +195,8 @@ NMwriteSection <- function(files,file.pattern,dir,section,newlines,list.sections
 
     
     res <- lapply(all.files,NMwriteSectionOne,section=section,newlines=newlines,
-           list.sections=list.sections,newfile=newfile,
-           backup=backup,blank.append=blank.append,write=write)
+                  list.sections=list.sections,newfile=newfile,
+                  backup=backup,blank.append=blank.append,write=write)
 
     if(simplify&&length(res)==1) res <- res[[1]]
     

@@ -2,7 +2,7 @@
 ##'
 ##' Instead of trying to remember the arguments to pass to write.csv,
 ##' use this wrapper. It tells you what to write in $DATA and $INPUT
-##' in nonmem, and it (additionally) exports an rds or Rdata file as
+##' in nonmem, and it (additionally) exports an rds file as
 ##' well which is highly preferable for use in R. It never edits the
 ##' data before writing the datafile. The filenames for csv, rds
 ##' etc. are derived by replacing the extension to the filename given
@@ -14,21 +14,22 @@
 ##'     standard file name extensions are added.
 ##' @param write.csv Write to csv file?
 ##' @param write.rds write an rds file?
-##' @param write.RData In case you want to save to .RData object. Not
-##'     recommended. Use write.rds instead.
+##' @param write.RData In case you want to save to .RData
+##'     object. Deprecated and not recommended. Use write.rds instead.
 ##' @param script If provided, the object will be stamped with this
-##'     script name before saved to rds or Rdata. See ?NMstamp.
+##'     script name before saved to rds or RData. See ?NMstamp.
 ##' @param args.stamp A list of arguments to be passed to NMstamp.
 ##' @param args.fwrite List of arguments passed to fwrite. Notice that
 ##'     except for "x" and "file", you need to supply all arguments to
 ##'     fwrite if you use this argument. Default values can be
 ##'     configured using NMdataConf.
 ##' @param args.rds A list of arguments to be passed to saveRDS.
-##' @param args.RData A list of arguments to be passed to save.
+##' @param args.RData A list of arguments to be passed to save. Please
+##'     note that writing RData is deprecated.
 ##' @param col.flagn Name of a numeric column with zero value for rows
 ##'     to include in Nonmem run, non-zero for rows to skip. The
-##'     argument is only used for generating the proposed $DATA text to
-##'     paste into the Nonmem control stream. To skip this feature,
+##'     argument is only used for generating the proposed $DATA text
+##'     to paste into the Nonmem control stream. To skip this feature,
 ##'     use col.flagn=NULL.
 ##' @param quiet The default is to give some information along the way
 ##'     on what data is found. But consider setting this to TRUE for
@@ -38,7 +39,7 @@
 ##'     function that generates text suggestion for INPUT and DATA
 ##'     sections in the NONMEM control stream. You can use these
 ##'     arguments to get a text suggestion you an use directly in
-##'     NONMEM - and NwriteSection can even update multiple NONMEM
+##'     NONMEM - and NMwriteSection can even update multiple NONMEM
 ##'     control streams based on the result. This will update your
 ##'     control streams to match your new data file with just one
 ##'     command.
@@ -74,19 +75,11 @@ NMwriteData <- function(data,file,write.csv=TRUE,write.rds=write.csv,
                         write.RData=FALSE,script,args.stamp,
                         args.fwrite, args.rds,args.RData,
                         quiet,args.NMgenText,
-### seprecated NMgenText arguments
+### deprecated NMgenText arguments
                         nm.drop,
                         nmdir.data,col.flagn, nm.rename,nm.copy,
                         nm.capitalize,allow.char.TIME){
-
-#### Section start: Dummy variables, only not to get NOTE's in pacakge checks ####    
-    TIME <- NULL 
-    comma.ok <- NULL
-    include <- NULL
-    numeric.ok <- NULL
-
-### Section end: Dummy variables, only not to get NOTE's in pacakge checks
-
+    
     
 #### Section start: Process arguments ####
 
@@ -209,7 +202,7 @@ NMwriteData <- function(data,file,write.csv=TRUE,write.rds=write.csv,
     comma.ok=as.logical(has.no.comma[1])
 
     if(any(!comma.ok)){
-        messageWrap(paste("You must avoid commas in data values. They will curropt the csv file, so get rid of them before saving data. Comma found in column(s):",paste(colnames(data.dt)[comma.ok==FALSE],sep=", ")),
+        messageWrap(paste("You must avoid commas in data values. They will corrupt the csv file, so get rid of them before saving data. Comma found in column(s):",paste(colnames(data.dt)[comma.ok==FALSE],sep=", ")),
                     fun.msg=stop)
     }
 
@@ -233,17 +226,17 @@ NMwriteData <- function(data,file,write.csv=TRUE,write.rds=write.csv,
         files.written <- c(files.written,file.csv)
         if(doStamp){
             
-            ## data <- do.call(NMstamp,append(list(data=data,writtenTo=file.csv),args.stamp))
             do.call(NMstamp,append(list(data=data,writtenTo=file.csv),args.stamp))
             data.meta.csv <- NMinfo(data,"dataCreate")
             data.meta.csv <- data.table(parameter=names(data.meta.csv)
-                                       ,value=unlist(lapply(data.meta.csv,as.character)))
+                                       ,value=unlist(lapply(data.meta.csv,as.character,usetz=T)))
             file.csv.meta <- paste0(fnExtension(file.csv,ext=""),"_meta.txt")
             fwrite(data.meta.csv,file=file.csv.meta,quote=TRUE,row.names=FALSE,sep=",")
         }
     }
     
     if(write.RData){
+        messageWrap("Writing to RData files is deprecated and this option will be removed from NMwriteData. Please use write.rds instead.")
         name.data <- deparse(substitute(data))
         file.RData <- fnExtension(file,".RData")
         if(doStamp) data <- do.call(NMstamp,append(list(data=data,writtenTo=file.RData),args.stamp))
@@ -274,12 +267,11 @@ NMwriteData <- function(data,file,write.csv=TRUE,write.rds=write.csv,
     }
     
     ## NONMEM text
-    
-    NMtext <- do.call(NMgenText,
+    NMtext <- try(do.call(NMgenText,
                       append(
                           list(data=data.dt,file=file)
                          ,args.NMgenText)
-                      )
+                      ))
 
     
     invisible(list(INPUT=NMtext$INPUT,DATA=NMtext$DATA))

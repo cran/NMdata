@@ -7,7 +7,7 @@
 \alias{dimnames.NMdata}
 \alias{rbind.NMdata}
 \alias{cbind.NMdata}
-\title{Basic arithmetic}
+\title{Basic arithmetic on NMdata objects}
 \usage{
 \method{merge}{NMdata}(x, ...)
 
@@ -28,13 +28,13 @@
 An object that is not of class 'NMdata'.
 }
 \description{
-Basic arithmetic
+Basic arithmetic on NMdata objects
 }
 \details{
 When 'dimnames', 'merge', 'cbind', 'rbind', or 't' is
     called on an 'NMdata' object, the 'NMdata' class is dropped,
     and then the operation is performed. So if and 'NMdata' object
-    inherits from 'data.frame' and no other clases (which is
+    inherits from 'data.frame' and no other classes (which is
     default), these operations will be performed using the
     'data.frame' methods. But for example, if you use 'as.fun' to
     get a 'data.table' or 'tbl', their respective methods are used

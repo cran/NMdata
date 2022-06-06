@@ -25,6 +25,7 @@ fix.time <- function(x){
     meta.x$tables$file <- NULL
     meta.x$tables$file.mtime <- NULL
     setattr(x,"NMdata",meta.x)
+    invisible(x)
 }
 
 NMdataConf(reset=TRUE)
@@ -101,6 +102,7 @@ test_that("Multiple output table formats",{
     fix.time(res)
     
     expect_equal_to_reference(res,fileRef,version=2)
+
     ## without meta
     ## expect_equal(unNMdata(res),unNMdata(readRDS(fileRef)))
 })
@@ -120,6 +122,7 @@ test_that("Interpret IGNORE statement",{
     ## names(res$row)
     
     expect_equal_to_reference(res,fileRef,version=2)
+
     ## without meta
     ## expect_equal(unNMdata(res),unNMdata(readRDS(fileRef)))
 })
@@ -359,7 +362,6 @@ test_that("recoverRows without a row identifier",{
 ### notice that DV PRED RES WRES are returned in firstonly. This is horrible.
     ## tabs <- NMscanTables(file.lst)
     ## tabs
-
     res1 <- NMscanData(file=file.lst,merge.by.row=FALSE,recover.rows = T,as.fun="data.table",check.time = FALSE)
     dim(res1)
     res1[,table(nmout,DOSE)]
@@ -490,8 +492,15 @@ test_that("input.txt/output.txt - unset modelname",{
     attributes(res1dir)$NMdata$datafile$string <- NULL
 
     fix.time(res1)
-    fix.time(res1dir)
+    meta.res1 <- NMinfo(res1)
+    meta.res1$details$logtime.lst <- NULL
+    setattr(res1,"NMdata",meta.res1)
 
+    fix.time(res1dir)
+    meta.res1dir <- NMinfo(res1dir)
+    meta.res1dir$details$logtime.lst <- NULL
+    setattr(res1dir,"NMdata",meta.res1dir)
+    
     ## these differ a little in the two estimates
     cols.differ <- c("TVKA","TVCL","TVV3","TVQ","KA","CL","V3","Q","V2","IPRED","PRED","RES","WRES")
     res1[,(cols.differ):=NULL]
@@ -563,7 +572,7 @@ test_that("Modifying row identifier",{
 })
 
 test_that("merge.by.row=ifAvailable when available",{
-
+    NMdataConf(reset=TRUE)
     fileRef <- "testReference/NMscanData21.rds"
 
     file.lst <- system.file("examples/nonmem/xgxr001.lst" ,package="NMdata")
@@ -598,7 +607,7 @@ test_that("merge.by.row=ifAvailable when not available",{
     
 })
 
-test_that(" col.row does not exist, but merge.by.row==TRUE",{
+test_that("col.row does not exist, but merge.by.row==TRUE",{
 ### col.row does not exist, but merge.by.row==TRUE
     fileRef <- "testReference/NMscanData22b.rds"
     NMdataConf(reset=T)
@@ -684,7 +693,11 @@ test_that("redundant output",{
     file.lst <- "testData/nonmem/estim_debug.ctl"
 
     ## notice no cols are taken from the redundant table - correct
-    res1 <- expect_warning(NMscanData(file=file.lst))
+    res1 <- expect_message(
+        NMscanData(file=file.lst)
+    )
+
+
     ##     tabs1 <- NMscanTables(file=file.lst,as.fun="data.table",details=T,tab.count=F)
     ##     tabs1$meta
     ## tabs1$data[[4]]
@@ -699,7 +712,6 @@ test_that("redundant output",{
     
 }
 )
-
 
 
 ## check.time (warning)
@@ -779,3 +791,35 @@ test_that("only firstonly. Has col.id, no col.row.",{
 })
 
 
+test_that("Two firstonly, one full-length",{
+
+    fileRef <- "testReference/NMscanData28.rds"
+    file.lst <- "testData/nonmem/xgxr025.lst"
+
+    res <- NMscanData(file=file.lst,check.time=F)
+    res <- fix.time(res)
+    ## ref <- readRDS(fileRef)
+    
+    expect_equal_to_reference(res,fileRef,version=2)
+    
+})
+
+
+test_that("Input data as character",{
+
+    fileRef <- "testReference/NMscanData29.rds"
+    file.lst <- "testData/nonmem/xgxr026.lst"
+
+    expect_error(NMscanData(file=file.lst,check.time=F))
+    
+    res <- NMscanData(file=file.lst,check.time=F,use.rds=F)
+    sapply(res,class)
+    res <- NMscanData(file=file.lst,check.time=F,use.rds=T,merge.by.row = F)
+    sapply(res,class)
+    
+    ## res <- fix.time(res)
+    ## ## ref <- readRDS(fileRef)
+    
+    ## expect_equal_to_reference(res,fileRef,version=2)
+    
+})

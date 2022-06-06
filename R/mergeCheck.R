@@ -67,7 +67,7 @@
 ##'     unchanged. This is even further limited than a left join where
 ##'     you can match rows multiple times. A common example of the use
 ##'     of mergeCheck is for adding covariates to a pk/pd data set. We
-##'     do not want that to remove or dupicate doses, observations, or
+##'     do not want that to remove or duplicate doses, observations, or
 ##'     simulation records. In those cases, mergeCheck does all needed
 ##'     checks, and you can run full speed without checking dimensions
 ##'     (which is anyway not exactly the right thing to do in the
@@ -89,7 +89,7 @@
 ##' and BW.y and is often unintended.
 ##'
 ##' \item Before merging a row counter is added to x. After the merge, the
-##' result is assured to have exactly one occurance of each of the
+##' result is assured to have exactly one occurrence of each of the
 ##' values of the row counter in x.
 ##'
 ##' }
@@ -305,7 +305,7 @@ mergeCheck <- function(x,y,by,by.x,by.y,fun.commoncols=base::warning,ncols.expec
     df3 <- as.fun(df3)
 
     if(!quiet){
-        msg <- paste0("The following columns were added: ",paste(newcols,collapse=", "))
+        msg <- paste0("Column(s) added: ",paste(newcols,collapse=", "))
         message(msg)
     }
     

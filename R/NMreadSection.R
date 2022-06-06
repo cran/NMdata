@@ -9,7 +9,7 @@
 ##' @param lines Text lines to process. This is an alternative to
 ##'     using the file argument.
 ##' @param text Use this argument if the text to process is one long
-##'     character string, and indicate the line seperator with the
+##'     character string, and indicate the line separator with the
 ##'     linesep argument (handled by NMextractText). Use only one of
 ##'     file, lines, and text.
 ##' @param section The name of section to extract without
@@ -98,7 +98,7 @@ NMreadSection <- function(file=NULL, lines=NULL, text=NULL, section, return="tex
     
 }
 
-#' @describeIn NMreadSection Old function name for NMreadSection
+#' @describeIn NMreadSection Deprecated function name. Use NMreadSection.
 NMgetSection <- function(...){
     .Deprecated("NMreadSection")
     NMreadSection(...)
