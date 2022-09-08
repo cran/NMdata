@@ -823,3 +823,19 @@ test_that("Input data as character",{
     ## expect_equal_to_reference(res,fileRef,version=2)
     
 })
+
+
+
+test_that("Input control stream missing",{
+    NMdataConf(reset=TRUE)
+    NMdataConf(file.mod="doesNotExist.mod")
+
+    fileRef <- "testReference/NMscanData_30.rds"
+    file.lst <- "testData/nonmem/xgxr001.lst"
+    res <- NMscanData(file=file.lst,use.input=F)
+## check file.mod wasn't used
+##    NMinfo(res1a,"details")
+    fix.time(res)
+    expect_equal_to_reference(res,fileRef,version=2)
+    
+})
