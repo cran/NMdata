@@ -16,10 +16,13 @@ addTAPD(
   col.ndoses = "NDOSES",
   col.pdosamt = "PDOSAMT",
   col.doscuma = "DOSCUMA",
+  prefix.cols,
+  suffix.cols,
   subset.dos,
   subset.is.complete,
   order.evid = c(3, 0, 2, 4, 1),
   by = "ID",
+  SDOS = 1,
   as.fun
 )
 }
@@ -39,7 +42,7 @@ must exist in data. Default is AMT.}
 by addTAPD). Default is TPDOS. Set to NULL to not create this
 column.}
 
-\item{col.tapd}{Name of the time of prvious dose column (created
+\item{col.tapd}{Name of the time of previous dose column (created
 by addTAPD). Default is TAPD. Set to NULL to not create this
 column.}
 
@@ -55,13 +58,21 @@ column.}
 the cumulative dose amount. Set to NULL to not create this
 column.}
 
+\item{prefix.cols}{String to be prepended to all generated column
+names, that is each of col.tpdos, col.tapd, col.ndoses,
+col.pdosamt, col.doscuma that are not NULL.}
+
+\item{suffix.cols}{String to be appended to all generated column
+names, that is each of col.tpdos, col.tapd, col.ndoses,
+col.pdosamt, col.doscuma that are not NULL.}
+
 \item{subset.dos}{A string that will be evaluated as a custom
 expression to identify relevant events. See subset.is.complete
 as well.}
 
 \item{subset.is.complete}{Only used in combination with
 non-missing subset.dos. By default, subset.dos is used in
-addition to the impact of col.evid and col.amt. If
+addition to the impact of col.evid (must be 1 or 4) and col.amt (greater than zero). If
 subset.is.complete=TRUE, subset.dos is used alone, and
 col.evid and col.amt are completely ignored. This is typically
 useful if the events are not doses but other events that are
@@ -77,11 +88,18 @@ simulations are pre-dose. See details.}
 
 \item{by}{Columns to do calculations within. Default is ID.}
 
+\item{SDOS}{Scaling value for columns related to dose amount,
+relative to AMT values. col.pdosamt and col.doscuma are
+affected and will be derived as AMT/SDOSE.}
+
 \item{as.fun}{The default is to return data as a data.frame. Pass
 a function (say tibble::as_tibble) in as.fun to convert to
 something else. If data.tables are wanted, use
 as.fun="data.table". The default can be configured using
 NMdataConf.}
+}
+\value{
+A data.frame with additional columns
 }
 \description{
 For now, doses have to be in data as EVID=1 and/or EVID=4
@@ -92,7 +110,7 @@ dosing notation using ADDL and II.
 addTAPD does not require the data to be ordered, and it
     will not order it. This means you can run addTAPD before
     ordering data (which may be one of the final steps) in data
-    set prepation. The argument called order.evid is important
+    set preparation. The argument called order.evid is important
     because of this. If a dosing event and a sample occur at the
     same time, when which dose was the previous for that sample?
     Default is to assume the sample is a pre-dose sample, and
@@ -104,6 +122,7 @@ addTAPD does not require the data to be ordered, and it
 Other DataCreate: 
 \code{\link{NMorderColumns}()},
 \code{\link{NMstamp}()},
+\code{\link{NMwriteData}()},
 \code{\link{findCovs}()},
 \code{\link{findVars}()},
 \code{\link{flagsAssign}()},

@@ -1,3 +1,66 @@
+# 0.0.14
+## New features
+* fnExtension has been generalized. It now ignores leading spaces in
+  new extension, and extensions with zero or one leading period are
+  treated identically (so asking for xml or .xml is the same). Also,
+  by providing "" as the new extension will now remove the extension,
+  and if extension is not provided, fnExtension will retrieve the
+  extension rather than replace it.
+  
+* NMscanData now supports repeated output tables, like those created
+  using the SUBPROBLEM option.
+  
+* NMwriteData has a new argument csv.trunc.as.nm. If TRUE, csv file
+  will be truncated horizontally (columns will be dropped) to match
+  the $INPUT text generated for Nonmem (genText must be TRUE for this
+  option to be allowed). This can be a great advantage when dealing
+  with large datasets that can create problems in
+  parallellization. Combined with write.rds=TRUE, the full data set
+  will still be written to an rds file, so this can be used when
+  combining output and input data when reading model results. This is
+  done by default by NMscanData. This means writing a lean (narrow)
+  csv file for Nonmem while keeping columns of non-numeric class like
+  character and factor for post-processing.
+  
+* NMwriteData has got an arguement 'genText' to control whether text
+  for Nonmem should be generated. Default is to do so. Also, support
+  is added for script=NULL which now means the same as not specifying
+  script.
+  
+* addTAPD now includes SDOS, a scalar to be applied when computing
+  last dose amount and cumulative dose amount from AMT. Sometimes, AMT
+  is in one unit, and other variables related to doses is in
+  another. Say that dose is in mg and concentrations are in ng/mL,
+  then AMT should be in mcg. But you may wtill want everything else
+  related to doses to be in mg. Then use SDOS=1000.
+
+* addTAPD includes convenient prefix.cols and suffix.cols arguments
+  that will prepend or append strings to all created columns. This is
+  useful if dosing more than one drug, and you want to run addTAPD for
+  both (different suffixes?), or if you want to run for nominal and
+  actual time (prefix A and N?).
+
+* flagsAssign now reports that data is empty and return the data
+  if nothing is left after applying subset. It used to return an
+  error.
+  
+* NMgenText has a new argument, width, passed to strwrap to control
+  the width of the $INPUT text for Nonmem.
+
+## Bugfixes
+* NMapplyFilters (and then NMscanInput and NMscanData) gave an error
+  when multiple filters were applied on the same column. Fixed.
+
+* addTAPD was not respecting subset.dos for all generated columns. 
+
+* NMisNumeric would interpret a NA of class character or logical as
+  non-numeric. Fixed.
+
+## Other improvements
+* Internally, combination of input and output data without a row
+  identifier is simplified.
+  
+* NMdata version added to welcome message.
 # 0.0.13
 
 ## New functions
@@ -13,8 +76,7 @@
 * A new data set called mad is included. It is based on the
   mad_missing_duplicates from the xgxr package. Doses are implemented
   using ADDL and II (so only one dosing row per subject). It is
-  included for testing the new NMexpandDoses and coming addTAD
-  functions.
+  included for testing the new NMexpandDoses and addTAPD functions.
 
 ## Bugfixes
 * Non-critical bugfix in mergeCheck dimensions overview printed to

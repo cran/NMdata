@@ -1,5 +1,5 @@
-##' Find and read all output data tables in nonmem run
-##' @param file the nonmem file to read (normally .mod or .lst)
+##' Find and read all output data tables in Nonmem run
+##' @param file the Nonmem file to read (normally .mod or .lst)
 ##' @param details If TRUE, metadata is added to output. In this case,
 ##'     you get a list. Typically, this is mostly useful if
 ##'     programming up functions which behavior must depend on
@@ -8,10 +8,12 @@
 ##'     on what data is found. But consider setting this to TRUE for
 ##'     non-interactive use. Default can be configured using
 ##'     NMdataConf.
-##' @param tab.count Nonmem includes a counter of tables in the
+##' @param rep.count Nonmem includes a counter of tables in the
 ##'     written data files. These are often not useful. However, if
-##'     tab.count is TRUE (not default), this will be carried forward
-##'     and added as a column called TABLENO.
+##'     rep.count is TRUE (not default), this will be carried forward
+##'     and added as a column called NMREP. Even if NMREP is generated
+##'     by NMscanTables, it is treated like any other table column in
+##'     meta (?NMinfo) data.
 ##' @param col.id name of the subject ID column. Used for calculation
 ##'     of the number of subjects in each table.
 ##' @param as.fun The default is to return data as a data.frame. Pass
@@ -19,19 +21,18 @@
 ##'     something else. If data.tables are wanted, use
 ##'     as.fun="data.table". The default can be configured using
 ##'     NMdataConf.
-##' @param col.row The name of the row counter column. Optional and only
-##'     used to check whether the row counter is in the data.
+##' @param col.row The name of the row counter column. Optional and
+##'     only used to check whether the row counter is in the data.
 ##' @return A list of all the tables as data.frames. If details=TRUE,
 ##'     this is in one element, called data, and meta is another
-##'     element. If not, only the data is
-##'     returned.
+##'     element. If not, only the data is returned.
 ##' @examples
 ##' tabs1 <- NMscanTables(system.file("examples/nonmem/xgxr001.lst", package="NMdata"))
 ##' @family DataRead
 ##' @import data.table
 ##' @export
 
-NMscanTables <- function(file,as.fun,quiet,tab.count=FALSE,col.id="ID",col.row,details){
+NMscanTables <- function(file,as.fun,quiet,rep.count=FALSE,col.id="ID",col.row,details){
     
 #### Section start: Dummy variables, only not to get NOTE's in package checks ####
 
@@ -114,11 +115,13 @@ NMscanTables <- function(file,as.fun,quiet,tab.count=FALSE,col.id="ID",col.row,d
     for(I in 1:nrow(meta)){
         if(!file.exists(meta[I,file])) stop(paste0("NMscanTables: File not found: ",meta[I,file],". Did you copy the lst file but forgot table
 file?"))
-        tables[[I]] <- NMreadTab(meta[I,file],quiet=TRUE,tab.count=tab.count,showProgress=FALSE,as.fun=identity,header=meta[I,!noheader])
+        tables[[I]] <- NMreadTab(meta[I,file],quiet=TRUE,rep.count=rep.count,showProgress=FALSE,as.fun=identity,header=meta[I,!noheader])
+### to not include NMREP when counting columns
+        ## dim.tmp <- dim(tables[[I]][,!colnames(tables[[I]])=="NMREP",with=FALSE])
         dim.tmp <- dim(tables[[I]])
         meta[I,nrow:=dim.tmp[1]]
         meta[I,ncol:=dim.tmp[2]]
-
+        
         if(meta[I,noheader]) {
             messageWrap("Using NOHEADER option in $TABLE is only experimentally supported in NMdata. Please double check the resuling column names. NMdata functions can handle the recurring headers in Nonmem tables so the NOHEADER option should not be needed.",fun.msg=message)
             cnames.text <- lines.table[[I]]
@@ -133,7 +136,7 @@ file?"))
             nce <- length(cnames.extra)
             
             if(nce){
-                ## subtracting 1 from indeces because NMreadTab adds TABLENO
+                ## Adding 1 to indeces because NMreadTab adds NMREP
                 cnames.all[(ncol.I-nce+1):(ncol.I)] <- cnames.extra
             }
             cnames <- cnames.all[1:ncol.I]

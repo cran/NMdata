@@ -17,6 +17,8 @@ NMwriteData(
   args.RData,
   quiet,
   args.NMgenText,
+  csv.trunc.as.nm = FALSE,
+  genText = TRUE,
   nm.drop,
   nmdir.data,
   col.flagn,
@@ -62,12 +64,29 @@ NMdataConf.}
 
 \item{args.NMgenText}{List of arguments to pass to NMgenText - the
 function that generates text suggestion for INPUT and DATA
-sections in the NONMEM control stream. You can use these
+sections in the Nonmem control stream. You can use these
 arguments to get a text suggestion you an use directly in
-NONMEM - and NMwriteSection can even update multiple NONMEM
+Nonmem - and NMwriteSection can even update multiple Nonmem
 control streams based on the result. This will update your
 control streams to match your new data file with just one
 command.}
+
+\item{csv.trunc.as.nm}{If TRUE, csv file will be truncated
+horizontally (columns will be dropped) to match the $INPUT
+text generated for Nonmem (genText must be TRUE for this
+option to be allowed). This can be a great advantage when
+dealing with large datasets that can create problems in
+parallellization. Combined with write.rds=TRUE, the full data
+set will still be written to an rds file, so this can be used
+when combining output and input data when reading model
+results. This is done by default by NMscanData. This means
+writing a lean (narrow) csv file for Nonmem while keeping
+columns of non-numeric class like character and factor for
+post-processing.}
+
+\item{genText}{Run and report results of NMgenText? Default is
+TRUE. You may want to disable this if data set is not for
+Nonmem.}
 
 \item{nm.drop}{Deprecated, use
 args.NMgenText=list(drop=c("column")) instead.}
@@ -99,7 +118,7 @@ Text for inclusion in Nonmem control stream, invisibly.
 \description{
 Instead of trying to remember the arguments to pass to write.csv,
 use this wrapper. It tells you what to write in $DATA and $INPUT
-in nonmem, and it (additionally) exports an rds file as
+in Nonmem, and it (additionally) exports an rds file as
 well which is highly preferable for use in R. It never edits the
 data before writing the datafile. The filenames for csv, rds
 etc. are derived by replacing the extension to the filename given
@@ -118,11 +137,15 @@ is stopped. Only exception is TIME which is not tested for whether
 character or not.
 }
 \seealso{
-Other Nonmem: 
-\code{\link{NMapplyFilters}()},
-\code{\link{NMextractText}()},
-\code{\link{NMgenText}()},
-\code{\link{NMreadSection}()},
-\code{\link{NMwriteSection}()}
+Other DataCreate: 
+\code{\link{NMorderColumns}()},
+\code{\link{NMstamp}()},
+\code{\link{addTAPD}()},
+\code{\link{findCovs}()},
+\code{\link{findVars}()},
+\code{\link{flagsAssign}()},
+\code{\link{flagsCount}()},
+\code{\link{mergeCheck}()},
+\code{\link{tmpcol}()}
 }
-\concept{Nonmem}
+\concept{DataCreate}

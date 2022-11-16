@@ -2,20 +2,20 @@
 % Please edit documentation in R/NMscanTables.R
 \name{NMscanTables}
 \alias{NMscanTables}
-\title{Find and read all output data tables in nonmem run}
+\title{Find and read all output data tables in Nonmem run}
 \usage{
 NMscanTables(
   file,
   as.fun,
   quiet,
-  tab.count = FALSE,
+  rep.count = FALSE,
   col.id = "ID",
   col.row,
   details
 )
 }
 \arguments{
-\item{file}{the nonmem file to read (normally .mod or .lst)}
+\item{file}{the Nonmem file to read (normally .mod or .lst)}
 
 \item{as.fun}{The default is to return data as a data.frame. Pass
 a function (say tibble::as_tibble) in as.fun to convert to
@@ -28,16 +28,18 @@ on what data is found. But consider setting this to TRUE for
 non-interactive use. Default can be configured using
 NMdataConf.}
 
-\item{tab.count}{Nonmem includes a counter of tables in the
+\item{rep.count}{Nonmem includes a counter of tables in the
 written data files. These are often not useful. However, if
-tab.count is TRUE (not default), this will be carried forward
-and added as a column called TABLENO.}
+rep.count is TRUE (not default), this will be carried forward
+and added as a column called NMREP. Even if NMREP is generated
+by NMscanTables, it is treated like any other table column in
+meta (?NMinfo) data.}
 
 \item{col.id}{name of the subject ID column. Used for calculation
 of the number of subjects in each table.}
 
-\item{col.row}{The name of the row counter column. Optional and only
-used to check whether the row counter is in the data.}
+\item{col.row}{The name of the row counter column. Optional and
+only used to check whether the row counter is in the data.}
 
 \item{details}{If TRUE, metadata is added to output. In this case,
 you get a list. Typically, this is mostly useful if
@@ -47,11 +49,10 @@ properties of the output.}
 \value{
 A list of all the tables as data.frames. If details=TRUE,
     this is in one element, called data, and meta is another
-    element. If not, only the data is
-    returned.
+    element. If not, only the data is returned.
 }
 \description{
-Find and read all output data tables in nonmem run
+Find and read all output data tables in Nonmem run
 }
 \examples{
 tabs1 <- NMscanTables(system.file("examples/nonmem/xgxr001.lst", package="NMdata"))

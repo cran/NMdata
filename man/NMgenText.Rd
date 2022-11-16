@@ -16,6 +16,7 @@ NMgenText(
   capitalize = FALSE,
   until,
   allow.char.TIME = TRUE,
+  width,
   quiet
 )
 }
@@ -45,8 +46,8 @@ include BBW and not BWBASE.}
 additional names for columns in Nonmem $INPUT, NMwriteData can
 adjust the suggested $INPUT text. Say you plan to use CONC as
 DV in Nonmem, use copy=c(DV="CONC"),
-i.e. copy=c(newname="existing"). INPUT suggestion will in
-this case contain DV=CONC.}
+i.e. copy=c(newname="existing"). INPUT suggestion will in this
+case contain DV=CONC.}
 
 \item{file}{The file name NONMEM will read the data from (for the
 $DATA section). It can be a full path.}
@@ -75,6 +76,10 @@ Nonmem can read TIME even if it can't be translated to
 numeric. This is necessary if using the 00:00 format. Default
 is TRUE.}
 
+\item{width}{If positive, will be passed to strwrap for the $INPUT
+text. If missing or NULL, strwrap will be called with default
+value. If negative or zero, strwrap will not be called.}
+
 \item{quiet}{Hold messages back? Default is defined by NMdataConf.}
 }
 \value{
@@ -94,7 +99,6 @@ Other Nonmem:
 \code{\link{NMapplyFilters}()},
 \code{\link{NMextractText}()},
 \code{\link{NMreadSection}()},
-\code{\link{NMwriteData}()},
 \code{\link{NMwriteSection}()}
 }
 \concept{Nonmem}

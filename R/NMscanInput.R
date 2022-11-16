@@ -9,10 +9,10 @@
 ##' and it can also read an rds file instead of the delimited text
 ##' file used by Nonmem.
 ##' 
-##' @description Based on a nonmem run (lst and/or mod file), this
+##' @description Based on a Nonmem run (lst and/or mod file), this
 ##'     function finds the input data and reads it. It reads the data
-##'     like the nonmem run by applying DROP/SKIP arguments and
-##'     alternative naming of columns in the nonmem run.
+##'     like the Nonmem run by applying DROP/SKIP arguments and
+##'     alternative naming of columns in the Nonmem run.
 ##' @param file a .lst (output) or a .mod (input) control stream
 ##'     file. The filename does not need to end in .lst. It is
 ##'     recommended to use the output control stream because it
@@ -33,20 +33,22 @@
 ##'     if you only have the output file, use dir.data to tell in
 ##'     which directory to find the data file. If dir.data is
 ##'     provided, the .mod file is not used at all.
+##' @param file.data Specification of the data file path. When this is
+##'     used, the control streams are not used at all.
 ##' @param use.rds If an rds file is found with the exact same name
 ##'     (except for .rds instead of say .csv) as the text file
 ##'     mentioned in the Nonmem control stream, should this be used
 ##'     instead? The default is yes, and NMwriteData will create this
 ##'     by default too.
 ##' @param applyFilters If TRUE (default), IGNORE and ACCEPT
-##'     statements in the nonmem control streams are applied before
+##'     statements in the Nonmem control streams are applied before
 ##'     returning the data.
 ##' @param translate If TRUE (default), data columns are named as
 ##'     interpreted by Nonmem (in $INPUT). If data file contains more
 ##'     columns than mentioned in $INPUT, these will be named as in
 ##'     data file (if data file contains named variables).
 ##' @param recover.cols recover columns that were not used in the
-##'     NONMEM control stream? Default is TRUE. Can only be negative
+##'     Nonmem control stream? Default is TRUE. Can only be negative
 ##'     when translate=FALSE.
 ##' @param details If TRUE, metadata is added to output. In this case,
 ##'     you get a list. Typically, this is mostly useful if
@@ -71,8 +73,6 @@
 ##' @param invert If TRUE, the data rows that are dismissed by the
 ##'     Nonmem data filters (ACCEPT and IGNORE) and only this will be
 ##'     returned. Only used if applyFilters is TRUE.
-##' @param file.data Specification of the data file path. When this is
-##'     used, the control streams are not used at all.
 ##' @details Columns that are dropped (using DROP or SKIP in $INPUT)
 ##'     in the model will be included in the output.
 ##'
@@ -155,8 +155,9 @@ NMscanInput <- function(file, use.rds, file.mod, dir.data=NULL,
     ## rows. This is used for very litle which should be done here
     ## instead of making a deep copy.
     data.input.0 <- copy(data.input)
-    
-    nminfo.input.0 <- NMinfoDT(data.input)
+
+    ### not used
+    ## nminfo.input.0 <- NMinfoDT(data.input)
 
     
     

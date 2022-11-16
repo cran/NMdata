@@ -1,5 +1,5 @@
 ## library(devtools)
-## load_all("c:/Users/delff/working_copies/NMdata")
+## load_all()
 
 ## for some reason, the linebreaking is not consistent in $INPUT
 ## making these tests fail. So for now, we don't test te line
@@ -18,7 +18,7 @@ test_that("basic",{
     pk <- readRDS(file=system.file("examples/data/xgxr2.rds",package="NMdata"))
 
     NMwriteData(pk,file="testOutput/NMwriteData1.csv",
-                        write.rds=F,write.csv=T,nmdir.data="/example")
+                write.rds=F,write.csv=T,nmdir.data="/example")
     res1 <- readLines("testOutput/NMwriteData1.csv")
 
     ## lapply(res1,print)
@@ -33,11 +33,11 @@ test_that("nm.drop is an empty string - not allowed",{
     pk <- readRDS(file=system.file("examples/data/xgxr2.rds",package="NMdata"))
     ## not allowed
     expect_error(
-        NMwriteData(pk
-                   ,file=system.file("examples/data/xgxr1.csv",package="NMdata")
-                   ,write.rds=F,write.csv=F
-                   ,nm.drop=""
-                    )
+        res <- NMwriteData(pk
+                          ,file=system.file("examples/data/xgxr1.csv",package="NMdata")
+                          ,write.rds=F,write.csv=F
+                          ,nm.drop=""
+                           )
     )
 })
 
@@ -108,12 +108,8 @@ test_that("nm.copy, nm.rename, drop",{
     nmCode <- NMwriteData(pk,file="derived/pk.csv",
                           write.csv=FALSE,
 ### arguments that tailors text for Nonmem
-                          nmdir.data="../derived",
-                          nm.drop="PROFDAY",
-                          nm.copy=c(CONC="DV"),
-                          nm.rename=c(BBW="WEIGHTB"),
                           ## PSN compatibility
-                          nm.capitalize=TRUE)
+                          args.NMgenText=list(dir.data="../derived",drop="PROFDAY",copy=c(CONC="DV"),rename=c(BBW="WEIGHTB"),capitalize=TRUE,width=80))
 
     expect_equal_to_reference(nmCode,fileRef,version=2)
 })
@@ -130,7 +126,8 @@ test_that("nm.copy, nm.rename, drop",{
                           write.RData=TRUE
 ### arguments that tailors text for Nonmem
                          ,args.rds=list(version=2),
-                         ,args.RData=list(version=2))
+                         ,args.RData=list(version=2)
+                         ,args.NMgenText=list(width=95))
 ### for testing of file contents. Not used.
     ## load("testOutput/pk.RData")
     ## pk.rdata <- pk
@@ -174,3 +171,85 @@ test_that("with stamp on csv",{
        ,fileRef,version=2)
 }
 )
+
+
+test_that("Quiet but get text for NM",{
+
+    fileRef <- "testReference/NMwriteData_9.rds"
+    outfile <- "testOutput/stampedData_9.csv"
+    
+    pk <- readRDS(file=system.file("examples/data/xgxr2.rds",package="NMdata"))
+
+    res1 <- NMwriteData(pk,file=outfile
+                       ,script="A simple test",write.rds=FALSE,
+                        args.stamp=list(time=as.POSIXct("2021-11-21 11:00:00")),
+                        quiet=T)
+    res1 <- fix.input(res1)
+
+    expect_equal_to_reference(
+        res1
+       ,fileRef,version=2)
+}
+)
+
+test_that("Not quiet but no text for NM",{
+    
+    pk <- readRDS(file=system.file("examples/data/xgxr2.rds",package="NMdata"))
+
+    res1 <- NMwriteData(pk,file=tempfile(),
+                       ,script="A simple test",write.rds=FALSE,
+                        args.stamp=list(time=as.POSIXct("2021-11-21 11:00:00")),
+                        quiet=FALSE,
+                        genText=FALSE)
+    expect_null(res1)
+
+}
+)
+
+
+test_that("script=NULL",{
+
+    fileRef <- "testReference/NMwriteData_10.rds"
+
+    pk0 <- readRDS(file=system.file("examples/data/xgxr2.rds",package="NMdata"))
+    pk <- copy(pk0)
+    is.NMdata(pk)
+    NMinfo(pk)
+    res1 <- NMwriteData(pk,file="testOutput/NMwriteData10.csv",
+                        write.rds=T,write.csv=T,nmdir.data="/example",script=NULL)
+
+    written1 <- readRDS("testOutput/NMwriteData10.rds")
+    NMinfo(written1)
+
+    
+    expect_equal_to_reference(
+        written1
+       ,fileRef,version=2)
+
+    ## that must not have affected pk
+    expect_equal(pk,pk0)
+
+})
+
+test_that("csv.trunc.as.nm",{
+
+    fileRef <- "testReference/NMwriteData_11.rds"
+
+    pk <- readRDS(file="testData/data/xgxr2.rds")
+ 
+    res1 <- NMwriteData(pk,file="testOutput/NMwriteData11.csv",
+                        write.rds=T,write.csv=T,nmdir.data="/example",script=NULL
+                        ,csv.trunc.as.nm=T)
+
+    written1.rds <- readRDS("testOutput/NMwriteData11.rds")
+    written1.csv <- NMreadCsv("testOutput/NMwriteData11.csv")
+
+    
+    expect_equal_to_reference(
+list(colnames(written1.rds),colnames(written1.csv))
+       ,fileRef,version=2)
+
+
+})
+
+

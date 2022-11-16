@@ -41,13 +41,14 @@ test_that("basic",{
     ## NMreadSection(NMdata_filepath("examples/nonmem/run001.lst"),section="DATA")
 
     res <- NMscanData(file=file.lst, quiet=T, order.columns = F, merge.by.row=FALSE, check.time = FALSE)
+    ## res2 <- NMscanData(file=file.lst, quiet=T, order.columns = F, merge.by.row=FALSE, check.time = FALSE,rep.count=T)
     ## dim(res)
 
     fix.time(res)
     
     expect_equal_to_reference(res,fileRef,version=2)
     ## without meta
-    ##    expect_equal(unNMdata(res1),unNMdata(readRDS(fileRef)))
+    ## expect_equal(unNMdata(res),unNMdata(readRDS(fileRef)))
     ## data.table(attributes(readRDS(fileRef))$meta$variables$variable,attributes(res1)$meta$variables$variable)
 })
 
@@ -71,6 +72,7 @@ test_that("Modifications to column names in $INPUT",{
     expect_equal_to_reference(res,fileRef,version=2)
     ## without meta
     ## expect_equal(unNMdata(res),unNMdata(readRDS(fileRef)))
+
 })
 
 test_that("No translation of column names in $INPUT",{
@@ -105,6 +107,10 @@ test_that("Multiple output table formats",{
 
     ## without meta
     ## expect_equal(unNMdata(res),unNMdata(readRDS(fileRef)))
+
+    ## only meta
+    ## expect_equal(NMinfo(res),NMinfo(readRDS(fileRef)))
+
 })
 
 test_that("Interpret IGNORE statement",{
@@ -202,14 +208,16 @@ test_that("Only a firstonly without ID but with ROW",{
     )
 
     ## merge.by.row should be able to merge. 
-    res1 <-
+    res <-
         expect_warning(
             NMscanData(file=file.lst,merge.by.row=TRUE,col.row="ROW",check.time = FALSE)
         )
-    fix.time(res1)
-    expect_equal_to_reference(res1,fileRef,version=2)
+    fix.time(res)
+    expect_equal_to_reference(res,fileRef,version=2)
     ## without meta
-    ## expect_equal(unNMdata(res1),unNMdata(readRDS(fileRef)))    
+    ## expect_equal(unNMdata(res),unNMdata(readRDS(fileRef)))
+    ## ref <- readRDS(fileRef)
+    
 })
 
 
@@ -325,7 +333,9 @@ test_that("Only a firstonly without ID but with ROW",{
 
 test_that("Only a firstonly without ID but with ROW. Using merge.by.row=TRUE.",{
 ### ROW is used to recover firstonly data.
-
+##    NMdataConf(as.fun="data.table")
+    ## NMdataConf(as.fun=NULL)
+    NMdataConf(reset=TRUE)
     fileRef <- "testReference/NMscanData15b.rds"
 
     ## file.lst <- NMdata_filepath("examples/nonmem/xgxr011.lst")
@@ -359,7 +369,7 @@ test_that("recoverRows without a row identifier",{
     NMreadSection(file.lst,section="DATA")
     NMreadSection(file.lst,section="TABLE")
 
-### notice that DV PRED RES WRES are returned in firstonly. This is horrible.
+### notice that DV PRED RES WRES are returned in firstonly. 
     ## tabs <- NMscanTables(file.lst)
     ## tabs
     res1 <- NMscanData(file=file.lst,merge.by.row=FALSE,recover.rows = T,as.fun="data.table",check.time = FALSE)
@@ -392,7 +402,20 @@ test_that("use as.fun to get a data.frame",{
     expect_equal_to_reference(
         res1,fileRef,version=2
     )
-    
+
+#### explore
+    ## ref <- readRDS(fileRef)
+    ## compareCols(res1,ref)
+
+    ## setorder(ref,ROW)
+    ## expect_equal(
+    ##     res1,ref
+    ## )
+
+    ## ref <- readRDS(fileRef)
+    ## names(attributes(res1))
+    ## names(attributes(ref))
+
 })
 
 
@@ -408,7 +431,7 @@ test_that("use as.fun to get a tibble",{
     NMreadSection(file.lst,section="DATA")
     NMreadSection(file.lst,section="TABLE")
 
-### notice that DV PRED RES WRES are returned in firstonly. This is horrible.
+### notice that DV PRED RES WRES are returned in firstonly. 
     ## tabs <- NMscanTables(file.lst)
     ## tabs
 
@@ -420,6 +443,20 @@ test_that("use as.fun to get a tibble",{
     expect_equal_to_reference(
         res1,fileRef,version=2
     )
+
+###### explore diffs
+    ##     ref <- readRDS(fileRef)
+    ##     compareCols(res1,ref)
+    ##     setorder(ref,ROW)
+    ##     expect_equal(
+    ##         unNMdata(res1),unNMdata(ref)
+    ##     )
+
+    ##     ref <- readRDS(fileRef)
+    ##     names(attributes(res1))
+    ##     names(attributes(ref))
+    ## class(res1)
+    ## class(ref)
     
 })
 
@@ -605,6 +642,15 @@ test_that("merge.by.row=ifAvailable when not available",{
         res1,fileRef,version=2
     )
     
+##### explore diffs
+    ## ref <- readRDS(fileRef)
+    ## compareCols(res1,ref)
+    ## setorder(ref,ROW)
+    ## expect_equal(
+    ##     unNMdata(res1),unNMdata(ref)
+    ## )
+
+    
 })
 
 test_that("col.row does not exist, but merge.by.row==TRUE",{
@@ -621,6 +667,13 @@ test_that("col.row does not exist, but merge.by.row==TRUE",{
         )
     fix.time(res1)
     expect_equal_to_reference(res1,fileRef)
+
+##### explore diffs
+    ## ref <- readRDS(fileRef)
+    ## indices( attributes(res1)$NMdata$tables)
+    ## indices(attributes(ref)$NMdata$tables)
+
+    
     
 })
 
@@ -666,7 +719,7 @@ test_that("Including a redundant output table",{
 
     ## notice no cols are taken from the redundant table - correct
     res1 <- NMscanData(file=file.lst,merge.by.row="ifAvailable",as.fun="data.table",check.time = FALSE)
-    ##     tabs1 <- NMscanTables(file=file.lst,as.fun="data.table",details=T,tab.count=F)
+    ##     tabs1 <- NMscanTables(file=file.lst,as.fun="data.table",details=T,rep.count=F)
     ##     tabs1$meta
     ## tabs1$data[[4]]
     ## NMinfo(res1,"tables")
@@ -698,7 +751,7 @@ test_that("redundant output",{
     )
 
 
-    ##     tabs1 <- NMscanTables(file=file.lst,as.fun="data.table",details=T,tab.count=F)
+    ##     tabs1 <- NMscanTables(file=file.lst,as.fun="data.table",details=T,rep.count=F)
     ##     tabs1$meta
     ## tabs1$data[[4]]
     ## NMinfo(res1,"tables")
@@ -804,6 +857,22 @@ test_that("Two firstonly, one full-length",{
     
 })
 
+test_that("Two firstonly, one full-length with rep.count",{
+    NMdataConf(reset=TRUE)
+#### TABLENO is now added to the number of columns taken from the
+#### output table that has TABLENO. Is that what we want? Or +1? +1 is
+#### very complicated for user. Maybe better: if rep.count, it is treated like any other column, but in NMinfo(,"tables") there is a column, hasTABLENO
+    fileRef <- "testReference/NMscanData28b.rds"
+    file.lst <- "testData/nonmem/xgxr025.lst"
+
+    res <- NMscanData(file=file.lst,check.time=F,rep.count=T)
+    res <- fix.time(res)
+    ## ref <- readRDS(fileRef)
+    
+    expect_equal_to_reference(res,fileRef,version=2)
+    
+})
+
 
 test_that("Input data as character",{
 
@@ -833,9 +902,49 @@ test_that("Input control stream missing",{
     fileRef <- "testReference/NMscanData_30.rds"
     file.lst <- "testData/nonmem/xgxr001.lst"
     res <- NMscanData(file=file.lst,use.input=F)
-## check file.mod wasn't used
-##    NMinfo(res1a,"details")
+    ## check file.mod wasn't used. Notice, merge.by.row is still "ifAvailable" - this was never needed because use.input=FALSE.
+    ##    NMinfo(res1a,"details")
     fix.time(res)
     expect_equal_to_reference(res,fileRef,version=2)
     
 })
+
+
+test_that("simulation model with subproblems",{
+    NMdataConf(reset=TRUE)
+
+    fileRef <- "testReference/NMscanData_31.rds"
+    
+### sim a model with subproblems
+    ## library(devtools)
+    ## load_all("~/wdirs/NMexec")
+    ## file.mod <- "testData/nonmem/xgxr014.mod"
+    ## ## NMexec(file.mod,sge=FALSE,wait=T)
+    ## doses <- NMcreateDoses(TIME=0,AMT=data.table(AMT=c(10,100),DOSE=c(10,100)))
+    ## simdat <- addEVID2(doses,time.sim=1:24,CMT=2)
+    ## simdat[,DV:=NA][
+    ##     ,ROW:=.I]
+    ## NMcheckData(simdat)
+
+    ## NMdataConf(as.fun="data.table")
+
+    ## sim1 <- NMsim(file.mod,data=simdat,
+    ##               suffix.sim="testsim1",dir.sim="testData/simulations"
+    ##              ,seed=343108,subproblems=100,nmquiet=T)
+
+### NMsim saves serialized rds. Resaving as version 2
+    ## res.sim <- readRDS("testData/simulations/NMsimData_xgxr014_testsim1.rds")
+    ## saveRDS(res.sim,"testData/simulations/NMsimData_xgxr014_testsim1.rds",version=2)
+##### sim done
+    
+    res <- NMscanData("testData/simulations/xgxr014_testsim1.lst",check.time=F)
+    
+    fix.time(res)
+    meta.x <- attr(res,"NMdata")
+    meta.x$details$time.ok <- NULL
+    setattr(res,"NMdata",meta.x)
+    
+    expect_equal_to_reference(res,fileRef,version=2)
+
+})
+
