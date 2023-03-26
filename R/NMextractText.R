@@ -38,6 +38,10 @@
 ##' @param cleanSpaces If TRUE, leading and trailing are removed, and
 ##'     multiplied succeeding white spaces are reduced to single white
 ##'     spaces.
+##' @param match.exactly Default is to search for exact matches of
+##'     `section`. If FALSE, only the first three characters are
+##'     macthed. E.G., this allows "ESTIMATION" to match "ESTIMATION"
+##'     or "EST".
 ##' @param type Either mod, res or NULL. mod is for information that
 ##'     is given in .mod (.lst file can be used but results section is
 ##'     disregarded). If NULL, NA or empty string, everything is
@@ -58,6 +62,7 @@ NMextractText <- function(file, lines, text, section, char.section,
                           keepEmpty=FALSE, keepName=TRUE,
                           keepComments=TRUE, asOne=TRUE,
                           simplify=TRUE, cleanSpaces=FALSE,
+                          match.exactly=TRUE,
                           type="mod", linesep="\n"){
 
     
@@ -74,7 +79,9 @@ NMextractText <- function(file, lines, text, section, char.section,
         lines <- strsplit(text,split=linesep)[[1]]
     }
 
-    
+    if(!match.exactly){
+        section <- substring(section,1,3)
+    }
     
     if(!return%in%c("idx","text")) stop("text must be one of text or idx.")
     
@@ -135,7 +142,8 @@ NMextractText <- function(file, lines, text, section, char.section,
         if(!return=="text") {
             stop("keepName can only be FALSE if return=='text'")
         }
-        result <- lapply(result, function(x)sub(paste0("^ *\\$",section),"",x))
+        ### todo test the addition of "[a-zA-Z]*"
+        result <- lapply(result, function(x)sub(paste0("^ *\\$",section,"[a-zA-Z]*"),"",x))
     }
 
     if(cleanSpaces){

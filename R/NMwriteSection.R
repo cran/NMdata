@@ -22,6 +22,9 @@
 ##' @param list.sections Named list of new sections, each element
 ##'     containing a section. Names must be section names, contents of
 ##'     each element are the new section lines for each section.
+##' @param location In combination with `section`, this determines
+##'     where the new section is inserter. Posible values are
+##'     "replace" (default), "before", "after", "first", "last".
 ##' @param newfile path and filename to new run. If missing, the
 ##'     original file (from \code{files} or \code{file.pattern}) is
 ##'     overwritten (see the \code{backup} option below). If NULL,
@@ -63,7 +66,7 @@
 
 
 NMwriteSection <- function(files,file.pattern,dir,section,newlines,
-                           list.sections,newfile,
+                           list.sections,location="replace",newfile,
                            backup=TRUE,blank.append=TRUE,data.file,
                            write=TRUE,quiet,simplify=TRUE){
 
@@ -76,7 +79,7 @@ NMwriteSection <- function(files,file.pattern,dir,section,newlines,
     if(missing(files)) files <- NULL
     if(missing(dir)) dir <- NULL
     if(missing(file.pattern)) file.pattern <- NULL
-   
+    
     all.files <- getFilePaths(files=files,file.pattern=file.pattern,dir=dir,quiet=quiet)
 
     if(length(all.files)==0){
@@ -101,6 +104,10 @@ NMwriteSection <- function(files,file.pattern,dir,section,newlines,
         ## this must be list, not as.list. as.list would translate multiple lines into multiple sections.
         list.sections=list(newlines)
         names(list.sections) <- section
+    } else {
+        if(location!="replace"){
+            messageWrap("Only location=replace is supported in combination with list.sections.",fun.msg=stop)
+        }
     }
     
 ###  Section end: handle arguments
@@ -108,6 +115,10 @@ NMwriteSection <- function(files,file.pattern,dir,section,newlines,
 
     NMwriteSectionOne <- function(file0,section,newlines,list.sections,newfile,
                                   backup=TRUE,blank.append=TRUE,write=TRUE){
+
+        after <- NULL 
+        before <- NULL
+        mad.dl <- NULL
         
         file0 <- filePathSimple(file0)
         stopifnot(file.exists(file0))
@@ -137,7 +148,7 @@ NMwriteSection <- function(files,file.pattern,dir,section,newlines,
                                         keepName=TRUE,keepComments=TRUE,asOne=TRUE,
                                         cleanSpaces=FALSE)
 
-            if(length(idx.dlines)==0) {
+            if(length(idx.dlines)==0&location%in%cc(replace,before,after)) {
                 message("section not found. Nothing to be done.")
                 return(lines)
             }
@@ -146,23 +157,54 @@ NMwriteSection <- function(files,file.pattern,dir,section,newlines,
                 ## if th
                 stopifnot(max(diff(idx.dlines))==1)
             }
-            min.dl <- min(idx.dlines)
+            if(location%in%cc(replace,before,after))
+                min.dl <- min(idx.dlines)
             max.dl <- max(idx.dlines)
 
 ### these two cases need to be handled slightly differently so not supported for now
             stopifnot(min.dl>1)
-            stopifnot(max.dl<=length(lines))
 
-            if(min.dl>1){
-                newlines <- c(lines[1:(min.dl-1)],
-                              newlines)
+            nlines <- length(lines)
+            
+            if(location=="replace"){
+                
+                if(min.dl==1&&max.dl==nlines){
+                    all.lines <- newlines
+                } else if(min.dl==1){
+                    all.lines <- c(newlines,lines[(mad.dl+1),nlines])
+                } else if(max.dl==nlines){
+                    all.lines <- c(lines[1:(min.dl-1)],newlines)
+                } else {
+                    all.lines <- c(lines[1:(min.dl-1)],
+                                   newlines,
+                                   lines[(max.dl+1):nlines])
+                }
             }
-            if(max.dl<length(lines)){
-                newlines <- c(newlines,
-                              lines[(max.dl+1):length(lines)])
+            if(location=="before"){
+                if(min.dl==1){
+                    all.lines <- c(newlines,lines)
+                } else {
+                    all.lines <- c(lines[1:(min.dl-1)],
+                                   newlines,
+                                   lines[(min.dl:length(lines))]
+                                   )
+                } 
             }
-
-            newlines
+            if(location=="after"){
+                all.lines <- c(lines,newlines)
+                if(min.dl>1){
+                    all.lines <- c(lines[1:(max.dl)],
+                                   newlines,
+                                   lines[(max.dl+1):length(lines)]
+                                   )
+                } else {
+                    all.lines <- lines
+                }
+            }
+            if(location=="last"){
+                all.lines <- c(lines,newlines)
+            }
+            all.lines
         }
         
         newlines <- lines
