@@ -78,7 +78,12 @@ also used in checks for row duplicates.}
 
 \item{col.flagn}{Optionally, the name of the column holding
 numeric exclusion flags. Default value is FLAG and can be
-configured using NMdataConf. Disable by using col.flagn=FALSE.}
+configured using NMdataConf. Even though FLAG is the default
+value, no finding will be returned if the column is missing
+unless explecitely defined as col.flagn="FLAG". This is
+because this way of using exclusion flags is only one of many
+ways you could choose to handle exclusions. Disable completely
+by using col.flagn=FALSE.}
 
 \item{col.row}{A column with a unique value for each row. Such a
 column is recommended to use if possible. Default ("ROW") can
@@ -132,7 +137,7 @@ The following checks are performed. The term "numeric"
     names must be unique and not contain special characters
 
 \item If an exclusion flag is used (for ACCEPT/IGNORE in Nonmem),
-    elements must be non-missing and integers. If an exclusion
+    elements must be non-missing and integers. Notice, if an exclusion
     flag is found, the rest of the checks are performed on rows
     where that flag equals 0 (zero) only.
 
@@ -149,7 +154,8 @@ non-missing, increasing integers.
 
 \item CMT must be positive integers. However, can be missing or zero for EVID==3.
 
-\item MDV must be the binary (1/0) representation of is.na(DV)
+\item MDV must be the binary (1/0) representation of is.na(DV) for
+dosing records (EVID==0).
 
 \item AMT must be 0 or NA for EVID 0 and 2
 
@@ -180,6 +186,9 @@ records. ADDL must be present.
 \item all ID's must have doses (EVID in {1,4})
 
 \item all ID's must have observations (EVID==0)
+
+\item ID's should not have leading zeros since these will be lost
+when Nonmem read, then write the data.
 
 \item If a unique row identifier is used, this must be
     non-missing, increasing, integer

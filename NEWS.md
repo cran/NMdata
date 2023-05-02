@@ -1,6 +1,36 @@
-# Post 0.0.15
+# 0.0.17
+
+This release provides a few bugfixes, nothing major.
+
 ## New features
-* NMwrieSection includes argument `location`. In combination with
+* NMscanTables (and hence NMscanData) now allows to skip missing
+  output tables (files missing) and continue combining what is
+  found. This is handled by the `skip.absent` argument.
+
+## Bugfixes
+* Filtering by the abbreviated IGN notation in Nonmem control
+  statements would not always work when not using a row identifier for
+  combining input and output data. This should now be fixed. However,
+  it is still recommended to use a row identifier to merge input and
+  output data.
+  
+* flagsCount now reports NA discards for total and analysis data. It
+  used to report zero but these criteria are not applied at these
+  steps.
+
+## Other improvements
+* NMcheckData has improved checks of some columns related to either
+  observations (like MDV) or doses (like RATE). This will give less
+  findings that Nonmem would not fail on anyway.
+
+* addTAPD's col.ndoses argument has been renamed to col.doscumn and
+  the default value is now "DOSCUMN". This makes it clear that it is a
+  cumulative number and it aligns with col.doscuma which is the
+  cumulative amount.
+
+# 0.0.16
+## New features
+* NMwriteSection includes argument `location`. In combination with
   `section`, this determines where the new section is
   inserter. Posible values are "replace" (default), "before", "after",
   "first", "last".
@@ -14,7 +44,7 @@
 NMcheckData did not check columns listed in cols.num for NA
 elements. Now it does.
 
-NMcheckData now only checks col.id to be non-NA for col.mdv==0 if
+NMcheckData now only checks col.dv to be non-NA for col.mdv==0 if
 col.mdv is present.
 
 NMscanInput would fail if there was no column called ID in the dataset

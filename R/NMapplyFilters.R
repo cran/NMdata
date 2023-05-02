@@ -23,7 +23,7 @@
 
 
 NMapplyFilters <- function(data,file,text,lines,invert=FALSE,as.fun,quiet) {
-
+    
 #### Section start: Dummy variables, only not to get NOTE's in pacakge checks ####
 
     . <- NULL
@@ -63,23 +63,28 @@ NMapplyFilters <- function(data,file,text,lines,invert=FALSE,as.fun,quiet) {
 
     text2 <- NMreadSection(lines=lines,section="DATA",keepComments=FALSE)
     text3 <- sub(";.*$","",text2)
-
+    
     ## replace the allowed IGN with IGNORE
     ## the single-chacter ones line @ or C. Here = is mandatory.
-    conds.sc <- regmatches(text3, gregexpr(paste0("IGN(?:ORE)"," *= *[^ (+]"),text3))
+    ## conds.sc <- regmatches(text3, gregexpr(paste0("IGN(?:ORE)"," *= *[^ (+]"),text3))
+    
+    ## simplifying so IGNORE/IGN is always IGN
+    text3 <- gsub("IGNORE","IGN",text3)
+
+    conds.sc <- regmatches(text3, gregexpr("(?:IGN) *=* *[^ (+=]",text3))
     conds.sc <- do.call(c,conds.sc)
-### why is this 
-    text3 <- gsub(paste0("IGNORE"," *= *[^ (+]"),"",text3)
+### getting rid of single char conditions
+    text3 <- gsub(paste0("IGN"," *=* *[^ (+=]"),"",text3)
 
     ## check if IGNORE or ACCEPT are found. If both found, it is an error. 
     any.accepts <- any(grepl("ACCEPT",text3))
     any.ignores <- any(grepl("IGN",text3))
     ## if no filters found, just return data as is
-    if(!any.accepts&&!any.ignores&length(conds.sc)==0) return(data)
+    if(!any.accepts && !any.ignores && length(conds.sc)==0) return(data)
     if(any.accepts&&any.ignores) stop("IGNORE and ACCEPT are not allowed together according to Nonmem documentation.")
     
     if(any.ignores) {
-        type.condition <- "IGNORE"
+        type.condition <- "IGN"
     } else {
         type.condition <- "ACCEPT"
     }
@@ -98,7 +103,7 @@ NMapplyFilters <- function(data,file,text,lines,invert=FALSE,as.fun,quiet) {
     
     ## translating single-charaters
     name.c1 <- colnames(data)[1]
-    scs <- sub(paste0("IGNORE"," *=* *(.+)"),"\\1",conds.sc)
+    scs <- sub(paste0("IGN"," *=* *(.+)"),"\\1",conds.sc)
     scs.all <- scs
     expressions.sc <- c()
     if(length(scs)&&grepl("@",scs)) {
@@ -146,16 +151,21 @@ NMapplyFilters <- function(data,file,text,lines,invert=FALSE,as.fun,quiet) {
     vars.cond <- sub("([[:alnum:]])[^[:alnum:]]+.*","\\1",expressions.list)
     
     if(length(vars.cond)){
-        missings <- listMissings(data,cols=unique(vars.cond),quiet=TRUE)
+        missings <- listMissings(data,cols=unique(vars.cond),quiet=TRUE,as.fun="data.table")
         if(!is.null(missings)&&nrow(missings)>0){
-            warning(paste("Missing values found in columns used for ACCEPT/IGNORE statements. This is not supported. If at all possible, please use a unique row identifier to merge by and/or make sure values are not missing in these colums.\n",paste(capture.output(print(missings[,.N,by=.(variable,value)])),collapse="\n")))
+            warning(paste("Missing values found in columns used for ACCEPT/IGNORE statements. This is not supported. If at all possible, please use a unique row identifier to merge by and/or make sure values are not missing in these colums.\n",
+                          paste(capture.output(
+                              print(
+                                  missings[,.N,by=.(variable,value)]
+                                    )
+                          ),collapse="\n")))
             
         }
     }
     
     cond.combine <- "|"
     ## remember to negate everything if the type is ignore
-    if(type.condition=="IGNORE") {
+    if(type.condition=="IGN") {
         expressions.list <- paste0("!",expressions.list)
         cond.combine <- "&"
     }
