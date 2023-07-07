@@ -14,6 +14,11 @@
 ##'     an argument, the argument is reset to default.  is See
 ##'     examples for how to use.
 ##'
+##' @param allow.unknown Allow to store configuration of variables
+##'     that are not pre-defined in NMdata. This should only be needed
+##'     in cases where say another package wants to use the NMdata
+##'     configuration system for variables unknown to NMdata.
+##'
 ##' Parameters that can be controlled are:
 ##'
 ##' \itemize{
@@ -66,6 +71,10 @@
 ##' \item{col.row} The name of the column containing a unique row
 ##' identifier. This is used by NMscanData when merge.by.row=TRUE, and
 ##' by NMorderColumns (row counter will be first column in data).
+##'
+##' \item{dir.psn} The directory in which to find psn executables like
+##' `execute` and `update_inits`. Default is "" meaning that
+##' executables must be in the system search path. Not used by NMdata.
 ##' 
 ##' \item{file.mod} A function that will derive the path to the input control
 ##' stream based on the path to the output control stream. Technically, it can
@@ -78,6 +87,14 @@
 ##' it can be a string too, but when using NMdataConf, this would make
 ##' little sense because it would direct all output control streams to
 ##' the same input control streams.
+##'
+##' \item{formats.read} Prioritized input data file formats to look
+##' for and use if found. Default is c("rds","csv") which means
+##' \code{rds} will be used if found, and \code{csv} if
+##' not. \code{fst} is possible too.
+##'
+##' \item{formats.write} character vector of formats.write. Default is
+##' c("csv","rds"). "fst" is possible too.
 ##' 
 ##' \item{merge.by.row} Adjust the default combine method in
 ##' NMscanData.
@@ -87,7 +104,9 @@
 ##' become run1. Technically, it can be a string too, but when using NMdataConf,
 ##' this would make little sense because it would translate all output control
 ##' streams model name.
-##' 
+##'
+##' \item{path.nonmem} Path (a character string) to a nonmem
+##' executable. Not used by NMdata. Default is NULL.
 ##' 
 ##' \item{quiet} For non-interactive scripts, you can switch off the
 ##' chatty behavior once and for all using this setting.
@@ -103,7 +122,9 @@
 ##' Using this, you don't have to worry about remembering including
 ##' all relevant variables in the output tables. Default is TRUE.
 ##'
-##' \item{use.rds} Affects NMscanData and NMscanInput. 
+##' \item{use.rds} Deprecated, use \code{formats.read} and
+##' \code{formats.write} instead. Affects `code{NMscanData()}, 
+##' \code{NMscanInput()}, \code{NMwriteData()}.
 ##'
 ##' }
 ##' @details Recommendation: Use
@@ -123,7 +144,7 @@
 ##'     arguments given and no issues found, TRUE invisibly.
 ##' @export
 
-NMdataConf <- function(...){
+NMdataConf <- function(...,allow.unknown=FALSE){
     
     dots <- list(...)
     if(length(dots)==0){
@@ -153,11 +174,33 @@ NMdataConf <- function(...){
         }
     } else {
 
+### the deprecated use.rds 
+        if("use.rds"%in%names.args){
+            ## use.rds should be defined in NMdataConfOptions(). with a NULL default? Use it to update formats.read and tell user it's deprecated.
+            val <- dots[["use.rds"]]
+            if(is.null(val)) val <- "default"
+            val <- NMdataDecideOption("use.rds",val,allow.unknown=allow.unknown)
+            if(!is.null(val)){
+                
+                args1 <- getArgs()
+                deprecatedArg(oldarg="use.rds",args=args1)
+                message("overwriting `formats.read`")
+                dots[["formats.read"]] <- c("csv")
+                if(val){
+                    dots[["formats.read"]] <- c("rds","csv")
+                }
+                dots[["use.rds"]] <- NULL
+                N.args <- length(dots)
+                names.args <- names(dots)
+            }
+        }
+        
+        
         args <- lapply(1:N.args,function(I){
             val <- dots[[I]]
             if(is.null(val)) val <- "default"
             ## if(is.character(val)&&length(val)==1&val=="default") val <- NULL
-            NMdataDecideOption(names.args[I],val)
+            NMdataDecideOption(names.args[I],val,allow.unknown=allow.unknown)
         })
 
     }
@@ -175,6 +218,10 @@ NMdataConf <- function(...){
 ##' Get NMdataConf parameter properties
 ##'
 ##' @param name Optionally, a single parameter name (say "as.fun").
+##' @param allow.unknown Allow access to configuration of variables
+##'     that are not pre-defined in NMdata. This should only be needed
+##'     in cases where say another package wants to use the NMdata
+##'     configuration system for variables unknown to NMdata.
 ##' @return If name is provided, a list representing one argument,
 ##'     otherwise a list with an element for each argument that can be
 ##'     customized using NMdataConf.
@@ -182,7 +229,7 @@ NMdataConf <- function(...){
 
 ## do not export
 
-NMdataConfOptions <- function(name){
+NMdataConfOptions <- function(name,allow.unknown=TRUE){
 
     all.options <- list(
         args.fread=list(
@@ -217,6 +264,7 @@ NMdataConfOptions <- function(name){
           ,msg.not.allowed="as.fun must be a function or the string \"data.table\""
           ,process=function(x){
               if(is.character(x)&&length(x)==1&&x%in%c("none")){
+### Deprecated way before 2023-06-12
                   .Deprecated("as.fun=none","as.fun=none deprecated (still working but will be removed). Use as.fun=data.table.")
               }
               if(is.character(x)&&length(x)==1&&x%in%c("none","data.table")){
@@ -291,6 +339,14 @@ NMdataConfOptions <- function(name){
            ,process=identity
         )
        ,
+        dir.psn=list(
+            default=""
+            ## has to be length 1 character 
+           ,is.allowed=function(x) is.character(x) && length(x)==1 
+           ,msg.not.allowed="dir.psn must be a single text string."
+           ,process=identity
+        )
+       ,
         file.mod=list(
             default=function(file) fnExtension(file,ext=".mod")
             ## has to be length 1 character or function
@@ -332,6 +388,14 @@ NMdataConfOptions <- function(name){
            }
         )
        ,
+        path.nonmem=list(
+            default=NULL
+            ## has to be length 1 character 
+           ,is.allowed=function(x) is.null(x) || (is.character(x) && length(x)==1) 
+           ,msg.not.allowed="path.nonmem must be a single text string."
+           ,process=identity
+        )
+       ,
         quiet=list(
             default=FALSE
            ,is.allowed=is.logical
@@ -355,9 +419,23 @@ NMdataConfOptions <- function(name){
         )
        ,
         use.rds=list(
-            default=TRUE
+            default=NULL
            ,is.allowed=is.logical
            ,msg.not.allowed="use.rds must be logical"
+           ,process=identity
+        )
+       ,
+        formats.read=list(
+            default=c("rds","csv")
+           ,is.allowed=function(x) is.character(x)&&all(x%in%c("csv","rds","fst"))
+           ,msg.not.allowed="formats.read must be a character vector and can only contain the values \"csv\", \"rds\", \"fst\"."
+           ,process=identity
+        )
+       ,
+        formats.write=list(
+            default=c("rds","csv")
+           ,is.allowed=function(x) is.character(x)&&all(x%in%c("csv","rds","fst"))
+           ,msg.not.allowed="formats.write must be a character vector and can only contain the values \"csv\", \"rds\", \"fst\"."
            ,process=identity
         )
     )
@@ -367,6 +445,8 @@ NMdataConfOptions <- function(name){
         if(length(name)==1){
             if(name%in%names(all.options)){
                 return(all.options[[name]])
+            } else if(allow.unknown) {
+                return(NULL)
             } else {
                 messageWrap("Option not found",fun.msg=stop,track.msg=FALSE)
             }
@@ -387,22 +467,27 @@ NMdataConfOptions <- function(name){
 ##' @keywords internal
 
 ## Do not export.
-NMdataDecideOption <- function(name,argument){
+NMdataDecideOption <- function(name,argument,allow.unknown=FALSE){
     
-    values.option <- NMdataConfOptions(name)
-
+    values.option <- NMdataConfOptions(name,allow.unknown=allow.unknown)
+    ## if nothing found and unknown parameters allowed, we just use the supplied value
+    is.unknown <- is.null(values.option)
+    if(is.unknown && allow.unknown) {
+        ## define a tmp object that serves purpose?
+        values.option <- list(default=NULL
+                             ,is.allowed=function(x)TRUE
+                             ,process=identity
+                              )
+    }
+    
     if(!missing(argument) && is.character(argument) && length(argument)==1 && argument=="default") {
         return(values.option$default)
     }
-    ## if(is.null(argument)) {
-    ##     return(values.option$default)
-    ## }
 
-    
 
     if(missing(argument)||is.null(argument)) return(NMdataGetOption(name))
+    ## if(!(is.null(values.option)&&allow.unknown)){
     if(!values.option$is.allowed(argument)) messageWrap(values.option$msg.not.allowed,fun.msg=stop,track.msg = FALSE)
-
     argument <- values.option$process(argument)
 
     return(argument)

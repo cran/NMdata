@@ -15,7 +15,7 @@ NMscanData(
   file.data,
   translate.input = TRUE,
   quiet,
-  use.rds,
+  formats.read,
   args.fread,
   as.fun,
   col.id = "ID",
@@ -27,12 +27,13 @@ NMscanData(
   check.time,
   tz.lst,
   skip.absent = FALSE,
-  tab.count
+  tab.count,
+  use.rds
 )
 }
 \arguments{
-\item{file}{A Nonmem control stream or output file from Nonmem
-(.mod or .lst)}
+\item{file}{Path to a Nonmem control stream or output file from
+Nonmem (.mod or .lst)}
 
 \item{col.row}{A column with a unique value for each row. Such a
 column is recommended to use if possible. See merge.by.row and
@@ -61,11 +62,11 @@ is taken into account. A column called nmout will be TRUE when
 the row was found in output tables, and FALSE when
 not. Default is FALSE and can be configured using NMdataConf.}
 
-\item{file.mod}{The input control stream. Default is to look for
-\"file\" with extension changed to .mod (PSN style). You can
-also supply the path to the file, or you can provide a
-function that translates the output file path to the input
-file path. The default behavior can be configured using
+\item{file.mod}{The input control stream file path. Default is to
+look for \"file\" with extension changed to .mod (PSN
+style). You can also supply the path to the file, or you can
+provide a function that translates the output file path to the
+input file path. The default behavior can be configured using
 NMdataConf. See dir.data too.}
 
 \item{dir.data}{The data directory can only be read from the
@@ -86,11 +87,11 @@ on what data is found. But consider setting this to TRUE for
 non-interactive use. Default can be configured using
 NMdataConf.}
 
-\item{use.rds}{If an rds file is found with the exact same name
-(except for .rds instead of say .csv) as the input data file
-mentioned in the Nonmem control stream, should this be used
-instead? The default is yes, and NMwriteData will create this
-by default too. Default can be configured using NMdataConf.}
+\item{formats.read}{Prioritized input data file formats to look
+for and use if found. Default is c("rds","csv") which means
+\code{rds} will be used if found, and \code{csv} if
+not. \code{fst} is possible too. Default can be modified using
+\code{NMdataConf()}.}
 
 \item{args.fread}{List of arguments passed to when reading _input_
 data. Notice that except for "input" and "file", you need to
@@ -127,12 +128,14 @@ representing whether row was in output table or not. Default
 can be modified using NMdataConf.}
 
 \item{rep.count}{Nonmem includes a counter of tables in the
-written data files. These are often not useful. Especially for
-NMscanData output it can be meaningless because multiple
-tables can be combined so this information is not unique
-across those source tables. However, if rep.count is TRUE (not
-default), this will be carried forward and added as a column
-called NMREP. The argument is passed to NMscanTables.}
+written data files. This does not relate to the order of the
+$TABLE statements but to cases where a $TABLE statement is run
+repeatedly. E.g., in combination with the SUBPROBLEMS feature
+in Nonmem, it is useful to keep track of the table
+(repetition) number. If rep.count is TRUE, this will be
+carried forward and added as a column called NMREP. This is
+default behavior when more than one $TABLE repetition is found
+in data. The argument is passed to NMscanTables.}
 
 \item{order.columns}{If TRUE (default), NMorderColumns is used to
 reorder the columns before returning the data. NMorderColumns
@@ -162,7 +165,12 @@ NMdataConf() too.}
 \item{skip.absent}{Skip missing output table files with a warning?
 Default is FALSE in which case an error is thrown.}
 
-\item{tab.count}{Deprecated. Use rep.count.}
+\item{tab.count}{Deprecated. Use \code{rep.count}.}
+
+\item{use.rds}{Deprecated - use \code{formats.read} instead. If
+provided (though not recommended), this will overwrite
+\code{formats.read}, and only formats \code{rds} and
+\code{csv} can be used.}
 }
 \value{
 A data set of class 'NMdata'.
@@ -204,7 +212,9 @@ list of known limitations:
 }
 }
 \examples{
+\dontrun{
 res1 <- NMscanData(system.file("examples/nonmem/xgxr001.lst", package="NMdata"))
+}
 }
 \seealso{
 Other DataRead: 

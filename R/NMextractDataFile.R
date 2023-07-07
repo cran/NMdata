@@ -49,9 +49,9 @@ NMextractDataFile <- function(file,dir.data=NULL,file.mod,file.data=NULL){
 ### containing the data. Since it is to be used in a FORTRAN OPEN statement,
 ### this name may not include embedded commas, semi-colons, parentheses, or
 ### spaces.
-        lines.data <- NMreadSection(file,section="DATA",keepName=FALSE,keepComments=FALSE,keepEmpty=FALSE)
+        lines.data <- NMreadSection(file,section="DATA",keep.name=FALSE,keep.comments=FALSE,keep.empty=FALSE)
         if(is.null(lines.data)) {
-            lines.data <- NMreadSection(file,section="INFILE",keepName=FALSE,keepComments=FALSE,keepEmpty=FALSE)
+            lines.data <- NMreadSection(file,section="INFILE",keep.name=FALSE,keep.comments=FALSE,keep.empty=FALSE)
         }
         if(is.null(lines.data)) stop("Could not find $DATA or $INFILE section in nonmem model. Please check the lst file.")
 
@@ -80,20 +80,24 @@ NMextractDataFile <- function(file,dir.data=NULL,file.mod,file.data=NULL){
     if(!is.null(dir.data)){
         file.data <- file.path(dir.data,basename(file.data))
     }
-
-    ## file.data.input.rds <- sub("^(.+)\\..+$","\\1.rds",file.data.input)
-    file.data.rds <- fnExtension(file.data,".rds")
-
     exists.file <- file.exists(file.data)
+    
+    file.data.rds <- fnExtension(file.data,".rds")
     exists.file.rds <- file.exists(file.data.rds)
+
+    file.data.fst <- fnExtension(file.data,".fst")
+    exists.file.fst <- file.exists(file.data.fst)
+
 
     return(list(
         DATA=lines.data
        ,string=string.file.data
-       ,path=file.data
+       ,path.csv=file.data
        ,path.rds=file.data.rds
-       ,exists.file=exists.file
+       ,path.fst=file.data.fst
+       ,exists.file.csv=exists.file
        ,exists.file.rds=exists.file.rds
+       ,exists.file.fst=exists.file.fst
     ))
     
 }

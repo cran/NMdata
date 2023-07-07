@@ -17,8 +17,11 @@ test_that("basic",{
 
     pk <- readRDS(file=system.file("examples/data/xgxr2.rds",package="NMdata"))
 
+    ## NMwriteData(pk,file="testOutput/NMwriteData1.csv",
+    ##             write.rds=F,write.csv=T,nmdir.data="/example")
     NMwriteData(pk,file="testOutput/NMwriteData1.csv",
-                write.rds=F,write.csv=T,nmdir.data="/example")
+                formats=cc(csv),nmdir.data="/example")
+
     res1 <- readLines("testOutput/NMwriteData1.csv")
 
     ## lapply(res1,print)
@@ -34,9 +37,10 @@ test_that("nm.drop is an empty string - not allowed",{
     ## not allowed
     expect_error(
         res <- NMwriteData(pk
-                          ,file=system.file("examples/data/xgxr1.csv",package="NMdata")
+                          ,file="testOutput/NMwriteDataTmp.csv"
                           ,write.rds=F,write.csv=F
                           ,nm.drop=""
+                           ## ,args.rds=list(version=2)
                            )
     )
 })
@@ -45,7 +49,7 @@ test_that("Dropping a column in Nonmem",{
 
     fileRef <- "testReference/NMwriteData_2.rds"
     pk <- readRDS(file=system.file("examples/data/xgxr2.rds",package="NMdata"))
-    res2 <- NMwriteData(pk,file=system.file("examples/data/xgxr1.csv",package="NMdata"),
+    res2 <- NMwriteData(pk,file="testOutput/NMwriteDataTmp.csv",
                         write.rds=F,write.csv=F,
                         nm.drop="PART",
                         nmdir.data="/example")
@@ -59,7 +63,7 @@ test_that("Dropping a column in Nonmem",{
     pk[,CYCLE:=paste0(as.character(CYCLE),"a")]
     fileRef <- "testReference/NMwriteData_3.rds"
 
-    res2b <- NMwriteData(pk,file=system.file("examples/data/xgxr1.csv",package="NMdata"),
+    res2b <- NMwriteData(pk,file="testOutput/NMwriteDataTmp.csv",
                          write.rds=F,write.csv=F,
                          nm.drop="CYCLE",
                          nmdir.data="/example")
@@ -82,9 +86,9 @@ test_that("A comma in a character",{
     fileRef <- "testReference/NMwriteData_3.rds"
 
     expect_error(
-        NMwriteData(pk,file=system.file("examples/data/xgxr1.csv",package="NMdata"),
-                    write.rds=F,write.csv=F,
-                    nm.drop="CYCLE")
+        NMwriteData(pk,file="testOutput/NMwriteDataTmp.csv",
+                   ,formats=NULL
+                    ,nm.drop="CYCLE")
     )
 
 })
@@ -94,7 +98,7 @@ test_that("Identical column names",{
 
     pk <- readRDS(file=system.file("examples/data/xgxr2.rds",package="NMdata"))
     pk <- cbind(pk[,.(CYCLE)],pk)
-    expect_warning(NMwriteData(pk,file=system.file("examples/data/xgxr1.csv",package="NMdata")
+    expect_warning(NMwriteData(pk,file="testOutput/NMwriteDataTmp.csv"
                               ,write.rds=F,write.csv=F
                                ))
 
@@ -104,12 +108,13 @@ test_that("Identical column names",{
 test_that("nm.copy, nm.rename, drop",{
     fileRef <- "testReference/NMwriteData_4.rds"
     
+    ##    pk <- readRDS(system.file("examples/data/xgxr1.rds",package="NMdata"))
     pk <- readRDS(file=system.file("examples/data/xgxr2.rds",package="NMdata"))
-    nmCode <- NMwriteData(pk,file="derived/pk.csv",
+    nmCode <- NMwriteData(pk,file="testOutput/NMwriteDataTmp.csv",
                           write.csv=FALSE,
 ### arguments that tailors text for Nonmem
                           ## PSN compatibility
-                          args.NMgenText=list(dir.data="../derived",drop="PROFDAY",copy=c(CONC="DV"),rename=c(BBW="WEIGHTB"),capitalize=TRUE,width=80))
+                          args.NMgenText=list(dir.data="../derived",drop="PROFDAY",copy=c(CONC="DV"),rename=c(BBW="WEIGHTB"),capitalize=TRUE,width=80),args.rds=list(version=2))
 
     expect_equal_to_reference(nmCode,fileRef,version=2)
 })
@@ -156,14 +161,16 @@ test_that("with stamp",{
 
 test_that("with stamp on csv",{
 
-    fileRef <- "testReference/NMwriteData_8.rds"
-    outfile <- "testOutput/stampedData_8.csv"
+    fileRef <- "testReference/NMwriteData_08.rds"
+    outfile <- "testOutput/stampedData_08.csv"
     
     pk <- readRDS(file=system.file("examples/data/xgxr2.rds",package="NMdata"))
 
     res1 <- NMwriteData(pk,file=outfile
-                       ,script="A simple test",write.rds=FALSE,
-                        args.stamp=list(time=as.POSIXct("2021-11-21 11:00:00")))
+                       ,script="A simple test",write.rds=TRUE
+                       ,args.stamp=list(time=as.POSIXct("2021-11-21 11:00:00"))
+                       ,args.rds=list(version=2)
+                        )
     res1 <- fix.input(res1)
 
     expect_equal_to_reference(
@@ -175,8 +182,8 @@ test_that("with stamp on csv",{
 
 test_that("Quiet but get text for NM",{
 
-    fileRef <- "testReference/NMwriteData_9.rds"
-    outfile <- "testOutput/stampedData_9.csv"
+    fileRef <- "testReference/NMwriteData_09.rds"
+    outfile <- "testOutput/stampedData_09.csv"
     
     pk <- readRDS(file=system.file("examples/data/xgxr2.rds",package="NMdata"))
 
@@ -236,20 +243,60 @@ test_that("csv.trunc.as.nm",{
     fileRef <- "testReference/NMwriteData_11.rds"
 
     pk <- readRDS(file="testData/data/xgxr2.rds")
- 
+    
     res1 <- NMwriteData(pk,file="testOutput/NMwriteData11.csv",
                         write.rds=T,write.csv=T,nmdir.data="/example",script=NULL
-                        ,csv.trunc.as.nm=T,args.rds=list(version=2))
+                       ,csv.trunc.as.nm=T,args.rds=list(version=2))
 
     written1.rds <- readRDS("testOutput/NMwriteData11.rds")
     written1.csv <- NMreadCsv("testOutput/NMwriteData11.csv")
 
     
     expect_equal_to_reference(
-list(colnames(written1.rds),colnames(written1.csv))
+        list(colnames(written1.rds),colnames(written1.csv))
        ,fileRef,version=2)
 
 
 })
 
 
+test_that("No saving",{
+
+    pk <- readRDS(file=system.file("examples/data/xgxr2.rds",package="NMdata"))
+
+    fn <- "testOutput/NMwriteData_nottowrite.csv"
+    NMwriteData(pk,file=fn,
+                formats=cc(csv),save=FALSE)
+
+    expect_false(file.exists(fn))
+    
+})
+
+test_that("save csv and fst",{
+    NMdataConf(reset=TRUE)
+    fileRef <- "testReference/NMwriteData_12.rds"
+    outfile <- "testOutput/stampedData_10.csv"
+    
+    pk <- readRDS(file=system.file("examples/data/xgxr2.rds",package="NMdata"))
+
+    nmcode <- NMwriteData(pk,file=outfile
+                         ,script="A simple test",formats=cc(csv,fst),
+                          args.stamp=list(time="2021-11-21 11:00:00"))
+    res1 <- NMreadCsv(fnExtension(outfile,"fst"))
+    
+
+    expect_equal_to_reference(
+        res1
+       ,fileRef,version=2)
+
+    if(FALSE){
+        t0 <- Sys.time()
+        res.fst <- NMreadCsv("testOutput/stampedData_10.fst")
+        t1 <- Sys.time()
+        res.csv <- NMreadCsv("testOutput/stampedData_10.csv")
+        t2 <- Sys.time()
+        data.table(method=cc(csv,fst),time=c(t2-t1,t1-t0))
+    }
+
+}
+)

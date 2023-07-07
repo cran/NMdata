@@ -298,3 +298,54 @@ test_that("no col.flagn",{
     res2 <- NMcheckData(pk)
     expect_equal(res1,res2)
 })
+
+dups_data <- data.frame(
+  ID = c(1, 1, 1),
+  TIME = c(1, 2, 2),
+  DV = c(NA, 20, 50),
+  AMT = c(100, 0, 0),
+  EVID = c(1, 0, 0),
+  DVID = c(1, 2, 3),
+  ROW = 1:3,
+  CMT = 1,
+  MDV = c(0, 0, 0)
+)
+
+
+test_that("check data files without cols.dup, but passed with it",{
+  no_dup_specified <- NMcheckData(dups_data)
+  dup_specified <- NMcheckData(dups_data, cols.dup = "DVID")
+  
+  expect_equal(nrow(no_dup_specified), 2)
+  expect_equal(nrow(dup_specified), 0)
+})
+
+test_that("simulation data",{
+
+    fileRef <- "testReference/NMcheckData_19.rds"
+
+    dt.dos <- data.table(ID=1,EVID=1,AMT=1,ADDL=3,II=12,CMT=1,TIME=0)
+    dt.sim <- data.table(ID=1,EVID=2,CMT=2,TIME=0:24)
+
+    dt.all <- rbind(dt.dos,dt.sim,fill=T)
+
+    res <- NMcheckData(dt.all)
+    
+    expect_equal_to_reference(res,fileRef)
+
+})
+
+test_that("empty data set",{
+
+    fileRef <- "testReference/NMcheckData_20.rds"
+
+    pk <- readRDS(file="testData/data/xgxr2.rds")
+    pk <- pk[0]
+    
+    
+    ## it finds way too many for ASSAY. Should only find 1.
+    res <- NMcheckData(pk,col.usubjid="usubjid")
+
+    expect_equal_to_reference(res,fileRef)
+})
+

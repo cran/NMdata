@@ -4,15 +4,20 @@
 \alias{NMdataConf}
 \title{Configure default behavior of NMdata functions}
 \usage{
-NMdataConf(...)
+NMdataConf(..., allow.unknown = FALSE)
 }
 \arguments{
 \item{...}{NMdata options to modify. These are named arguments,
-    like for base::options. Normally, multiple arguments can be
-    used. The exception is if reset=TRUE is used which means all
-    options are restored to default values. If NULL is passed to
-    an argument, the argument is reset to default.  is See
-    examples for how to use.
+like for base::options. Normally, multiple arguments can be
+used. The exception is if reset=TRUE is used which means all
+options are restored to default values. If NULL is passed to
+an argument, the argument is reset to default.  is See
+examples for how to use.}
+
+\item{allow.unknown}{Allow to store configuration of variables
+    that are not pre-defined in NMdata. This should only be needed
+    in cases where say another package wants to use the NMdata
+    configuration system for variables unknown to NMdata.
 
 Parameters that can be controlled are:
 
@@ -67,6 +72,10 @@ time. This is only used for sorting columns by NMorderColumns.
 identifier. This is used by NMscanData when merge.by.row=TRUE, and
 by NMorderColumns (row counter will be first column in data).
 
+\item{dir.psn} The directory in which to find psn executables like
+`execute` and `update_inits`. Default is "" meaning that
+executables must be in the system search path. Not used by NMdata.
+
 \item{file.mod} A function that will derive the path to the input control
 stream based on the path to the output control stream. Technically, it can
 be a string too, but when using NMdataConf, this would make little sense
@@ -79,6 +88,14 @@ it can be a string too, but when using NMdataConf, this would make
 little sense because it would direct all output control streams to
 the same input control streams.
 
+\item{formats.read} Prioritized input data file formats to look
+for and use if found. Default is c("rds","csv") which means
+\code{rds} will be used if found, and \code{csv} if
+not. \code{fst} is possible too.
+
+\item{formats.write} character vector of formats.write. Default is
+c("csv","rds"). "fst" is possible too.
+
 \item{merge.by.row} Adjust the default combine method in
 NMscanData.
 
@@ -88,6 +105,8 @@ become run1. Technically, it can be a string too, but when using NMdataConf,
 this would make little sense because it would translate all output control
 streams model name.
 
+\item{path.nonmem} Path (a character string) to a nonmem
+executable. Not used by NMdata. Default is NULL.
 
 \item{quiet} For non-interactive scripts, you can switch off the
 chatty behavior once and for all using this setting.
@@ -103,7 +122,9 @@ chatty behavior once and for all using this setting.
 Using this, you don't have to worry about remembering including
 all relevant variables in the output tables. Default is TRUE.
 
-\item{use.rds} Affects NMscanData and NMscanInput. 
+\item{use.rds} Deprecated, use \code{formats.read} and
+\code{formats.write} instead. Affects `code{NMscanData()}, 
+\code{NMscanInput()}, \code{NMwriteData()}.
 
 }}
 }

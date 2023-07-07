@@ -1,3 +1,42 @@
+# 0.0.18
+
+## New features
+* The super fast `fst` format is now supported. Data sets can be
+  written to this format, and NMscanData() and related functions can
+  read it. It can be used instead of `rds` which is the default
+  full-featured data format used in the package.
+
+* New function NMreplaceDataFile to replace the input data file in a
+  control stream. A simple wrapper of NMwriteSection but useful for
+  this specific purpose.
+
+* New function editCharCols that allows for editing character columns
+  in a dataset based on regular expressions or strings. This allows
+  for instance for removal of special characters that are not allowed
+  in the selected data format (like a comma can make trouble in a csv
+  file).
+
+* NMcheckData has a new argument, `cols.dup`, to include additional
+  columns (to col.id, col.cmt, col.evid, and col.time) in search for
+  duplicated events. This is useful for different assays run on the
+  same compartment (say a DVID column) or maybe stacked datasets. If
+  col.cmt is of length>1, this search is repeated for each cmt
+  column. Thanks to Eric Anderson for suggesting and testing this.
+  
+* NMcheckData has improved checks of II and ADDL columns.
+
+## Other improvements
+* NMwriteData now uses the `formats` argument to specify the requested
+  file formats. This replaces arguments like write.csv and
+  write.rds. To get those two, do formats=c("csv","rds") (which is
+  default). The argument `save` is used to control whether outputs are
+  written altogether.
+  
+* Argument name format has been cleaned and aligned to follow the
+  an.arg format rather than camel toe which was also used in some
+  functions before. All deprecated arguments have been soft deprecated
+  meaning they still work.
+
 # 0.0.17
 
 This release provides a few bugfixes, nothing major.

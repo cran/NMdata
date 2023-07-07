@@ -18,11 +18,13 @@
 ##' @param ... Additional arguments passed to NMscanData.
 ##' @return All results stacked, class as defined by as.fun
 ##' @examples
+##' \dontrun{
 ##' res <- NMscanMultiple(dir=system.file("examples/nonmem", package="NMdata"),
 ##' file.pattern="xgxr01.*\\.lst",as.fun="data.table")
 ##' res.mean <- res[,.(meanPRED=exp(mean(log(PRED)))),by=.(model,NOMTIME)]
 ##' library(ggplot2)
-##' ggplot(res.mean,aes(NOMTIME,meanPRED,colour=model))+geom_line() 
+##' ggplot(res.mean,aes(NOMTIME,meanPRED,colour=model))+geom_line()
+##' }
 ##' @export
 
 
@@ -43,7 +45,7 @@ NMscanMultiple <- function(files,dir,file.pattern,as.fun,...){
 
 #### Section start: Define ad-hoc functions ####
 
-    catchAnything <- function(fun)
+    catchAnything <- function(fun){
         function(...) {
             warn <- err <- NULL
             res <- withCallingHandlers(
@@ -56,8 +58,10 @@ NMscanMultiple <- function(files,dir,file.pattern,as.fun,...){
                 })
             list(res, warn=warn, err=err)
         }
-    .has <- function(x, what)
+    }
+    .has <- function(x, what){
         !sapply(lapply(x, "[[", what), is.null)
+    }
     hasWarning <- function(x) .has(x, "warn")
     hasError <- function(x) .has(x, "err")
     isClean <- function(x) !(hasError(x) | hasWarning(x))
@@ -66,7 +70,7 @@ NMscanMultiple <- function(files,dir,file.pattern,as.fun,...){
 
 
 ### Section end: Define ad-hoc functions
-
+    
     if(missing(files)) files <- NULL
     if(missing(dir)) dir <- NULL
     if(missing(file.pattern)) file.pattern <- NULL
@@ -80,11 +84,11 @@ NMscanMultiple <- function(files,dir,file.pattern,as.fun,...){
     
 
     testfun <- function(x) NMscanData(x,as.fun="data.table",...)
-    fun.apply <- function(x){
-        cat(sprintf("\nReading %s:\n\n",x))
-        res <- catchAnything(testfun)
-        res
-    }
+    ## fun.apply <- function(x){
+    ##     cat(sprintf("\nReading %s:\n\n",x))
+    ##     res <- catchAnything(testfun)
+    ##     res
+    ## }
     
     res.all.list <- lapply(all.files,catchAnything(testfun))
 

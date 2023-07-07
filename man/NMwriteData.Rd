@@ -7,18 +7,21 @@
 NMwriteData(
   data,
   file,
-  write.csv = TRUE,
-  write.rds = write.csv,
-  write.RData = FALSE,
+  formats.write = c("csv", "rds"),
   script,
   args.stamp,
   args.fwrite,
   args.rds,
   args.RData,
+  args.write_fst,
   quiet,
   args.NMgenText,
   csv.trunc.as.nm = FALSE,
   genText = TRUE,
+  save = TRUE,
+  write.csv,
+  write.rds,
+  write.RData,
   nm.drop,
   nmdir.data,
   col.flagn,
@@ -35,12 +38,9 @@ NMwriteData(
 and including last ".") is dropped. csv, rds and other
 standard file name extensions are added.}
 
-\item{write.csv}{Write to csv file?}
-
-\item{write.rds}{write an rds file?}
-
-\item{write.RData}{In case you want to save to .RData
-object. Deprecated and not recommended. Use write.rds instead.}
+\item{formats.write}{character vector of formats.write. Default is
+c("csv","rds"). "fst" is possible too. Default can be modified
+with \code{NMdataConf()}.}
 
 \item{script}{If provided, the object will be stamped with this
 script name before saved to rds or RData. See ?NMstamp.}
@@ -57,6 +57,9 @@ configured using NMdataConf.}
 \item{args.RData}{A list of arguments to be passed to save. Please
 note that writing RData is deprecated.}
 
+\item{args.write_fst}{An optional list of arguments to be passed
+to write_fst.}
+
 \item{quiet}{The default is to give some information along the way
 on what data is found. But consider setting this to TRUE for
 non-interactive use. Default can be configured using
@@ -66,9 +69,9 @@ NMdataConf.}
 function that generates text suggestion for INPUT and DATA
 sections in the Nonmem control stream. You can use these
 arguments to get a text suggestion you an use directly in
-Nonmem - and NMwriteSection can even update multiple Nonmem
-control streams based on the result. This will update your
-control streams to match your new data file with just one
+Nonmem - and \code{NMwriteSection} can even update multiple
+Nonmem control streams based on the result. This will update
+your control streams to match your new data file with just one
 command.}
 
 \item{csv.trunc.as.nm}{If TRUE, csv file will be truncated
@@ -87,6 +90,21 @@ post-processing.}
 \item{genText}{Run and report results of NMgenText? Default is
 TRUE. You may want to disable this if data set is not for
 Nonmem.}
+
+\item{save}{Save defined files? Default is TRUE. If a variable is
+used to control whether a script generates outputs (say
+\code{writeOutputs=TRUE/FALSE)}, if you use
+\code{save=writeOutputs} to comply with this.}
+
+\item{write.csv}{Write to csv file? Deprecated, use
+`formats.write` instead.}
+
+\item{write.rds}{write an rds file? Deprecated, use
+`formats.write` instead.}
+
+\item{write.RData}{Deprecated and not recommended - will be
+removed. RData is not a adequate format for a dataset (but is
+for environments). Please use write.rds instead.}
 
 \item{nm.drop}{Deprecated, use
 args.NMgenText=list(drop=c("column")) instead.}

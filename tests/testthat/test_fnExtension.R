@@ -26,11 +26,19 @@ test_that("basic",{
     
 })
 
-test_that("Rerieve extension",{
+test_that("Retrieve extension",{
 
     expect_equal(fnExtension("feww.csv"),"csv")
     expect_equal(fnExtension("feww.aa.csv"),"csv")
-    expect_equal(fnExtension("csv"),"csv")
-
+    expect_equal(fnExtension(".csv"),"csv")
+## no extension to retrieve
+    expect_equal(fnExtension("egef"),"")
         
 })
+
+
+test_that("skip directory .s",{
+    expect_equal(fnExtension("fe/../egef",".csv"),"fe/../egef.csv")
+    expect_equal(fnExtension("fe/./egef",".csv"),"fe/./egef.csv")
+})
+
