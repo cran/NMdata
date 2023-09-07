@@ -11,7 +11,7 @@ NMscanInput(
   file.mod,
   dir.data = NULL,
   file.data = NULL,
-  applyFilters = FALSE,
+  apply.filters = FALSE,
   translate = TRUE,
   recover.cols = TRUE,
   details = TRUE,
@@ -21,6 +21,7 @@ NMscanInput(
   args.fread,
   invert = FALSE,
   as.fun,
+  applyFilters,
   use.rds
 )
 }
@@ -57,7 +58,7 @@ provided, the .mod file is not used at all.}
 \item{file.data}{Specification of the data file path. When this is
 used, the control streams are not used at all.}
 
-\item{applyFilters}{If TRUE (default), IGNORE and ACCEPT
+\item{apply.filters}{If TRUE (default), IGNORE and ACCEPT
 statements in the Nonmem control streams are applied before
 returning the data.}
 
@@ -92,7 +93,7 @@ can be configured using NMdataConf.}
 
 \item{invert}{If TRUE, the data rows that are dismissed by the
 Nonmem data filters (ACCEPT and IGNORE) and only this will be
-returned. Only used if applyFilters is TRUE.}
+returned. Only used if apply.filters is TRUE.}
 
 \item{as.fun}{The default is to return data as a data.frame. Pass
 a function (say tibble::as_tibble) in as.fun to convert to
@@ -100,10 +101,12 @@ something else. If data.tables are wanted, use
 as.fun="data.table". The default can be configured using
 NMdataConf.}
 
+\item{applyFilters}{Deprecated - use apply.filters.}
+
 \item{use.rds}{Deprecated - use \code{formats.read} instead. If
 provided (though not recommended), this will overwrite
 \code{formats.read}, and only formats \code{rds} and
-\code{csv} can be used. w}
+\code{csv} can be used.}
 }
 \value{
 A data set, class defined by 'as.fun'
