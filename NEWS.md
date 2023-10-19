@@ -1,3 +1,22 @@
+# 0.1.2
+## New features
+* NMreadExt is a new function that reads parameter estimates,
+  uncertainties if available, estimation iterations and other
+  information from .ext files. 
+* NMreadPhi is a new function that reads contents of Nonmem phi files.
+* NMreadCov is a "new" function that reads Nonmem .cov files
+  (parameter uncertainty as estimated by a covariance step). The
+  function is not really new. It was developed by Matt Fidler for
+  nonmem2rx based on NMdata's NMreadTab. It has been only slightly
+  modified since. Thanks Matt!
+* NMscanInput supports all combinations of `translate` and
+  `recover.cols`.
+
+## Other improvements
+* NMreadCsv supports multiple prioritized formats in the `format`
+  arguments.
+
+
 # 0.1.1
 ## New features
 * NMwriteSection can now handle functions to perform control stream

@@ -1,0 +1,6 @@
+$VAR1 = [
+          {
+            'failed' => 'NMtran could not be initiated (the NMtran output file FDATA is missing) - this could be a cluster file sync error'
+          }
+        ];
+Selected 1

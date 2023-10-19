@@ -6,7 +6,8 @@
 ##'  \item{Read and combine output tables,}
 ##'  \item{If wanted, read input data and restore variables that were not output from the Nonmem model}
 ##'  \item{If wanted, also restore rows from input data that were disregarded in
-##' Nonmem (e.g. observations or subjects that are not part of the analysis)}
+##' Nonmem (e.g. observations or subjects that are not part of the analysis)
+##' }
 ##' }
 ##' 
 ##' @param file Path to a Nonmem control stream or output file from
@@ -145,7 +146,7 @@
 ##' of this can be overcome by using merge.by.row=TRUE. Incomplete
 ##' list of known limitations:
 ##'
-##' \itemize{
+##' \describe{
 ##'  \item{character TIME}{If Nonmem is used to translate DAY and a character TIME column, TIME has to be available in an output table. NMscanData does not do the translation to numeric.}
 ##'  \item{RECORDS}{The RECORDS option to limit the part of the input data being used is not searched for. Using merge.by.row=TRUE will work unaffectedly.}
 ##'  \item{NULL}{The NULL argument to specify missing value string in input data is not respected. If delimited input data is read (as opposed to rds files), missing values are assumed to be represented by dots (.).}
@@ -218,6 +219,8 @@ NMscanData <- function(file, col.row, use.input, merge.by.row,
     if(missing(check.time)) check.time <- NULL
     if(missing(tz.lst)) tz.lst <- NULL
     if(missing(as.fun)) as.fun <- NULL
+    ### why is this not needed?
+    ## if(missing(modelname)) modelname <- NULL
     if(missing(quiet)) quiet <- NULL
     if(missing(formats.read)) formats.read <- NULL
     if(missing(args.fread)) args.fread <- NULL
@@ -291,7 +294,7 @@ NMscanData <- function(file, col.row, use.input, merge.by.row,
     ## For now, searching for a row identifier is disabled. This may belong in a separate function. 
     search.col.row <- FALSE
 ### notice, this can't be evaluated if merge.by.row=="ifAvailable"
-    if(is.null(merge.by.row.arg) && is.character(merge.by.row) && merge.by.row=="ifAvailable"){
+    if(!quiet && is.null(merge.by.row.arg) && is.character(merge.by.row) && merge.by.row=="ifAvailable"){
         search.col.row <- TRUE
     }
 
