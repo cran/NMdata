@@ -1,3 +1,39 @@
+# 0.1.4
+
+## New functions
+* `NMreadParsText()` is a new function to extract comments to
+  `$THETA`, `$OMEGA` and `$SIGMA` sections. As long as the comments
+  are structured in a table-like manner, `NMreadParsText()` should be
+  able to fetch them almost no matter what delimiters you used. Use
+  say `fields="%init;num)symbol/transform/label(unit)"` if you have
+  lines like
+`(0,1) ; 1) CL / log / This is clearance (L/h)`
+  All comment lines don't have to be completed, and you can specify
+separate formats for `$THETA`, `$OMEGA` and `$SIGMA`. Together with
+`NMreadExt()` this is a very flexible basis for generating parameter
+tables.
+
+* `colLabels()` is a simple wrapper of `compareCols()` that extracts
+  the SAS column labels on data sets.
+
+## New features
+* NMdata functions will now by default look for input control streams
+  with file name extensions either `.mod` or `.ctl`. The user
+  previously had to tell NMdata to look for `.ctl` using configuration
+  options or function arguments but it will now work either way. An
+  error will be thrown if both should be found.
+
+* `NMreadExt` will by default only return parameters and iterations
+  from the last table available. This can be controlled by the
+  `tableno` argument.
+
+* `fnAppend` will now throw an error in case the file name extension
+  cannot be identified.
+
+## Bugfixes
+* `NMreadText` would fail to disregard some comment lines when
+  `keep.comments=FALSE`. Fixed.
+
 # 0.1.3
 * Better support for models with multiple estimation
   steps. Particularly reading output tables now better distinguishes
@@ -5,11 +41,8 @@
   SUBPROBLEMS). Also, functions that read parameter estimates clearly
   separates Nonmem table numbers.
 
-# 0.1.2
 * Improved support for reading multiple models with NMreadExt and
 NMreadPhi. 
-
-
 
 # 0.1.2
 ## New features
