@@ -72,10 +72,24 @@
 ##' identifier. This is used by NMscanData when merge.by.row=TRUE, and
 ##' by NMorderColumns (row counter will be first column in data).
 ##'
+##' \item{col.id} The name of the column holding the numeric subject
+##' ID. As of `NMdata` 0.1.5 this is only used for sorting columns by
+##' NMorderColumns.
+##'
+##' \item{col.time} The name of the column holding actual time. As of
+##' `NMdata` 0.1.5 this is only used for sorting columns by
+##' NMorderColumns.
+##'
 ##' \item{dir.psn} The directory in which to find psn executables like
 ##' `execute` and `update_inits`. Default is "" meaning that
 ##' executables must be in the system search path. Not used by NMdata.
 ##'
+##' \item{dir.res} Directory in which `NMsim` will store simulation
+##' results files. Not used by NMdata. See dir.sims too.
+##' 
+##' \item{dir.sims} Directory in which `NMsim` will store Nonmem
+##' simulations. Not used by NMdata. See dir.res too.
+##' 
 ##' \item{file.cov} A function that will derive the path to the
 ##' covariance (.cov) output file stream based on the path to the
 ##' output control stream. Technically, it can be a string too, but
@@ -181,14 +195,29 @@ NMdataConf <- function(...,allow.unknown=FALSE){
     N.args <- length(dots)
     
 ### look for reset=TRUE. If so (and nothing else is given), set default values
+    do.reset <- FALSE
     if("reset"%in%names.args) {
+        do.reset <- TRUE
         reset <- dots$reset
         if(N.args>1) stop("reset cannot be combined with other arguments.")
         if(!is.logical(reset)) stop("reset must be logical")
         if(reset) {
+            ## .NMdata <<- new.env(parent = emptyenv())
+            ## assign(".NMdata",new.env(parent = emptyenv()),inherits=TRUE)
+            ## .NMdata$options <- list()
+            ## assign("options",list(),envir=.NMdata)
+            .NMdata$options <- list()
+            ## NMdataConf(reset=TRUE)
+            
+            
             allopts <- NMdataConfOptions()
             names.args <- names(allopts)
             args <- lapply(allopts,function(x)x$default)
+            
+            args.not.in.def <- setdiff(names(NMdataConf()),names.args)
+            if(length(args.not.in.def)){
+                args <- c(args,setNames(lapply(1:length(args.not.in.def),function(x)NULL),args.not.in.def))
+            }
             N.args <- length(args)
         } else {
             return(.NMdata$options)
@@ -230,6 +259,7 @@ NMdataConf <- function(...,allow.unknown=FALSE){
     ##     stop("not all option names recognized")
     ## }
 
+    
     for(I in 1:N.args){
         .NMdata$options[[names.args[I]]] <- args[[I]]
     }
@@ -313,6 +343,32 @@ NMdataConfOptions <- function(name,allow.unknown=TRUE){
            ,process=identity
         )
        ,
+        col.flagc=list(
+            default="flag"
+           ,is.allowed=function(x) (is.character(x) && length(x)==1)
+           ,msg.not.allowed="col.flagc must be a character vector of length 1."
+           ,process=identity
+        )
+       ,
+        col.flagn=list(
+            default="FLAG"
+           ,is.allowed=function(x) length(x)==1 && ((is.logical(x) && x==FALSE) || is.character(x) )
+           ,msg.not.allowed="col.flagn must be a character vector of length 1."
+           ,process=function(x) {if(is.logical(x) && x==FALSE) {
+                                     return(NULL)
+                                 } else {
+                                     return(x)
+                                 }
+           }
+        )
+       ,
+        col.id=list(
+            default="ID"
+           ,is.allowed=function(x) (is.character(x) && length(x)==1)
+           ,msg.not.allowed="col.id must be a character vector of length 1."
+           ,process=identity
+        )
+       ,
         col.model=list(
             default="model"
            ,is.allowed=function(x) (is.character(x) && length(x)==1)
@@ -334,29 +390,17 @@ NMdataConfOptions <- function(name,allow.unknown=TRUE){
            ,process=identity
         )
        ,
-        col.flagc=list(
-            default="flag"
-           ,is.allowed=function(x) (is.character(x) && length(x)==1)
-           ,msg.not.allowed="col.flagc must be a character vector of length 1."
-           ,process=identity
-        )
-       ,
-        col.flagn=list(
-            default="FLAG"
-           ,is.allowed=function(x) length(x)==1 && ((is.logical(x) && x==FALSE) || is.character(x) )
-           ,msg.not.allowed="col.flagn must be a character vector of length 1."
-           ,process=function(x) {if(is.logical(x) && x==FALSE) {
-                                     return(NULL)
-                                 } else {
-                                     return(x)
-                                 }
-           }
-        )
-       ,
         col.row=list(
             default="ROW"
            ,is.allowed=function(x) (is.character(x) && length(x)==1)
            ,msg.not.allowed="col.row must be a character vector of length 1."
+           ,process=identity
+        )
+       ,
+        col.time=list(
+            default="TIME"
+           ,is.allowed=function(x) (is.character(x) && length(x)==1)
+           ,msg.not.allowed="col.time must be a character vector of length 1."
            ,process=identity
         )
        ,
@@ -365,6 +409,22 @@ NMdataConfOptions <- function(name,allow.unknown=TRUE){
             ## has to be length 1 character 
            ,is.allowed=function(x) is.character(x) && length(x)==1 
            ,msg.not.allowed="dir.psn must be a single text string."
+           ,process=identity
+        )
+       ,
+        dir.res=list(
+            default=NULL
+            ## has to be length 1 character 
+           ,is.allowed=function(x) is.character(x) && length(x)==1 
+           ,msg.not.allowed="dir.res must be a single text string."
+           ,process=identity
+        )
+       ,
+        dir.sims=list(
+            default=NULL
+            ## has to be length 1 character 
+           ,is.allowed=function(x) is.character(x) && length(x)==1 
+           ,msg.not.allowed="dir.sims must be a single text string."
            ,process=identity
         )
        ,
@@ -517,7 +577,7 @@ NMdataConfOptions <- function(name,allow.unknown=TRUE){
             } else if(allow.unknown) {
                 return(NULL)
             } else {
-                messageWrap("Option not found",fun.msg=stop,track.msg=FALSE)
+                messageWrap(paste("NMdataConf option not found:",name),fun.msg=stop,track.msg=FALSE)
             }
         } else {
             messageWrap("if name is given, it must be a character of length 1",fun.msg=stop,track.msg=FALSE)

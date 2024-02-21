@@ -1,3 +1,37 @@
+# 0.1.5
+## New features
+* `countFlags` no longer needs a table of flags. By default it will
+  summarize the ones found in data. If additional flags wanted in
+  summary table (with no findings), the flag table is still needed.
+  
+* If a flag table is provided, `countFlags` will throw an error if the
+  flags found in data are not covered by the provided flag table.
+
+* `NMorderColumns` now includes arguments `col.id` and
+  `col.time`. These can now also be controlled using `NMdataConf()`.
+
+* `NMreadParText` includes argument `modelname`, `col.model`, and
+  `as.fun` and defaults to what is defined in `NMdataConf()` like
+  other `NMdata` functions. It also includes a `parameter` column for
+  easier merge with data from e.g. `ext` files `NMreadExt()`.
+
+* `NMreadParText` accepts function (with the control stream path as
+  argument) to define how to read the parameter information. This is
+  useful if one defines the tabulated information in a comment in the
+  control stream. NMreadParText basically allows for a full automation
+  of flexible parameter table generation.
+
+* `NMdataConf()` is configured to handle `NMsim`'s `dir.sims` and
+  `dir.res`.
+
+* `NMdataConf(reset=TRUE)` wipes all settings. In recent versions,
+  `NMdataConf` accepts the `allow.unknown` argument which means
+  settings that are unknown to `NMdata` can be stored. This is
+  relevant for other packages that want to make use of `NMdata`'s
+  configuration system (`NMsim` is an example of a package that does
+  so). Now `NMdataConf(reset=TRUE)` makes sure to wipe all such
+  configuration if exists.
+
 # 0.1.4
 
 ## New functions
