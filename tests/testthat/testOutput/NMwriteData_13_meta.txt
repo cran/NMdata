@@ -1,0 +1,4 @@
+"parameter","value"
+"DataCreateScript","DATE and TIME as char"
+"CreationTime","2021-11-21 11:00:00"
+"writtenTo","testOutput/NMwriteData_13.csv"

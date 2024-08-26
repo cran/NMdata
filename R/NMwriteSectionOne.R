@@ -4,7 +4,7 @@ NMwriteSectionOne <- function(file0,lines,section,location="replace",
                               newlines,list.sections,newfile,
                               backup=TRUE,blank.append=TRUE,write,
                               quiet=FALSE){
-
+    
     after <- NULL 
     before <- NULL
     mad.dl <- NULL
@@ -37,7 +37,7 @@ NMwriteSectionOne <- function(file0,lines,section,location="replace",
     
     ## put this part in a function to be sequentially applied for all elements in list.
     replaceOnePart <- function(lines,section,newlines,quiet=FALSE){
-        if(!quiet) message(paste("Writing",newfile))
+        if(!quiet && !is.null(newfile)) message(paste("Writing",newfile))
         
         ## make sure section is capital and does not start with $.
         section <- gsub(" ","",section)
@@ -63,7 +63,7 @@ NMwriteSectionOne <- function(file0,lines,section,location="replace",
                                     keep.name=TRUE,keep.comments=TRUE,as.one=TRUE,
                                     clean.spaces=FALSE)
 
-        if(length(idx.dlines)==0&location%in%cc(replace,before,after)) {
+        if(length(idx.dlines)==0 && location%in%cc(replace,before,after)) {
             if(!quiet) message("Section not found. Nothing to be done.")
             return(lines)
         }
@@ -108,11 +108,13 @@ NMwriteSectionOne <- function(file0,lines,section,location="replace",
             } 
         }
         if(location=="after"){
+            
             all.lines <- c(lines,newlines)
             if(min.dl>1){
                 all.lines <- c(lines[1:(max.dl)],
                                newlines,
-                               lines[(max.dl+1):length(lines)]
+                               lines[-(1:(max.dl))]
+                               ## lines[max((max.dl+1),length(lines)):length(lines)]
                                )
             } else {
                 all.lines <- lines
@@ -138,9 +140,6 @@ NMwriteSectionOne <- function(file0,lines,section,location="replace",
         ## make sure backup dir exists
         if(file.exists(dir.backup)&&!dir.exists(dir.backup)) messageWrap("Something called NMdata_backup is found and it is not a directory. Please remove or use backup=FALSE.",fun.msg=stop)
         if(!dir.exists(dir.backup)) dir.create(dir.backup)
-        ## file.copy (file0,
-        ##            sub("(.+/)([^/].+$)","\\1backup_\\2",x=file0)
-        ##            )
         file.copy(file0,dir.backup,overwrite=T)
     }
 

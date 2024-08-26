@@ -55,7 +55,6 @@
 ##' @param keepEmpty Deprecated. See keep.empty.
 ##' @param keepName Deprecated. See keep.name.
 ##' @param asOne Deprecated. See as.one.
-##' @param cleanSpaces Deprecated. See clean.spaces.
 ##' @return character vector with extracted lines.
 ##' @details This function is planned to get a more general name and
 ##'     then be called by NMreadSection.
@@ -73,26 +72,25 @@ NMextractText <- function(file, lines, text, section, char.section,
                           type="mod", linesep="\n",
                           ## deprecated arguments
                           keepEmpty, keepName,
-                          keepComments, asOne,
-                          cleanSpaces
+                          keepComments, asOne
                           ){
-
     nsection <- NULL
     idx <- NULL
     
 #### Section start: Pre-process arguments ####
 
-    args <- getArgs()
+    ## args <- getArgs()
+    args <- getArgs(sys.call(),parent.frame())
     
 ### deprecated since 2023-06-14: keepEmpty, keepName, keepComments, asOne, cleanSpaces
     keep.empty <- deprecatedArg("keepEmpty","keep.empty",args=args)
     keep.name <- deprecatedArg("keepName","keep.name",args=args)
     keep.comments <- deprecatedArg("keepComments","keep.comments",args=args)
     as.one <- deprecatedArg("asOne","as.one",args=args)
-    clean.spaces <- deprecatedArg("cleanSpaces","clean.spaces",args=args)
+    ## clean.spaces <- deprecatedArg("cleanSpaces","clean.spaces",args=args)
 
     if(!return%in%c("idx","text")) stop("text must be one of text or idx.")
-
+    
     if(sum(c(!missing(file)&&!is.null(file),
              !missing(lines)&&!is.null(lines),
              !missing(text)&&!is.null(text)
@@ -106,9 +104,13 @@ NMextractText <- function(file, lines, text, section, char.section,
     }
     if(type=="lst") type <- "res"
 
-    if(!match.exactly){
-        section <- substring(section,1,3)
+    
+    if(!match.exactly && section!="."){
+        section <- paste0(substring(section,1,min(nchar(section),3)),"[A-Z]*")
     }
+    ## if(match.exactly && section!="."){
+    ##     section <- paste0(section,"[^[A-Z]]*")
+    ## }
 
     
 ### Section end: Pre-process arguments
@@ -135,9 +137,18 @@ NMextractText <- function(file, lines, text, section, char.section,
                     },
                     all={lines}
                     )
-    
+    if(F){
+        ##:ess-bp-start::conditional@grepl("omega",section,ignore.case=T):##
+        browser(expr={grepl("omega",section,ignore.case=T)})##:ess-bp-end:##
+    }
     ## Find all the lines that start with the $section
-    idx.starts <- grep(paste0("^ *",char.section,section),lines)
+    ## idx.starts <- grep(paste0("^ *",char.section,section," *"),lines)
+    if(match.exactly){
+        idx.starts <- (1:length(lines))[grepl(paste0("^ *",char.section,section,"[^A-Z]*"),lines) &
+                                        !grepl(paste0("^ *",char.section,section,"[A-Z]+"),lines) ]
+    } else {
+        idx.starts <- (1:length(lines))[grepl(paste0("^ *",char.section,section,"[^A-Z]*"),lines)]
+    }
     idx.ends <- grep(paste0("^ *",char.end),lines)
 
     ## get the sections
@@ -188,19 +199,13 @@ NMextractText <- function(file, lines, text, section, char.section,
 
         ## result <- lapply(result, function(x)sub(paste0("^ *\\$",section,"[a-zA-Z]*"),"",x))
         ##  "[a-zA-Z]*" is needed for abbrev section names. Like for SIMULATION in case of SIM.
-        dt.res[,text:=sub(paste0("^ *\\$",section,"[a-zA-Z]*"),"",text)]
+        dt.res[,text:=sub(paste0("^ *\\$",section),"",text)]
     }
 
 
     if(clean.spaces){
         if(!return=="text") {
-            stop("cleanSpaces can only be TRUE if return=='text'")
-        }
-        cleanSpaces <- function(x,double=TRUE,lead=TRUE,trail=TRUE){
-            if(double) x <- gsub(paste0(" +")," ",x)
-            if(lead) x <- sub(paste0("^ +"),"",x)
-            if(trail) x <- sub(paste0(" +$"),"",x)
-            x
+            stop("clean.spaces can only be TRUE if return=='text'")
         }
         ## result <- lapply(result,cleanSpaces)
         

@@ -101,6 +101,7 @@ NMscanInput <- function(file, formats.read, file.mod, dir.data=NULL,
 #### Section start: Dummy variables, only not to get NOTE's in pacakge checks ####
 
     datafile <- NULL
+    info <- NULL
     nid <- NULL
     input <- NULL
     result <- NULL
@@ -128,7 +129,8 @@ NMscanInput <- function(file, formats.read, file.mod, dir.data=NULL,
     } 
     col.row <- NMdataDecideOption("col.row",col.row)
 
-    args <- getArgs()
+    ## args <- getArgs()
+    args <- getArgs(sys.call(),parent.frame())
     apply.filters <- deprecatedArg(oldarg="applyFilters",newarg="apply.filters",args=args)
     
     if(missing(quiet)) quiet <- NULL
@@ -141,7 +143,7 @@ NMscanInput <- function(file, formats.read, file.mod, dir.data=NULL,
     args.fread <- NMdataDecideOption("args.fread",args.fread)
     args.fst <- list(as.data.table=TRUE)
 
-    use.rds <- deprecatedArg(oldarg="use.rds",msg="Use `formats.read` instead. Overwriting `formats.read`.")
+    use.rds <- deprecatedArg(oldarg="use.rds",msg="Use `formats.read` instead. Overwriting `formats.read`.",args=args)
     if(!is.null(use.rds)&&use.rds){
         formats.read <- c("rds","csv")
     }
@@ -166,8 +168,12 @@ NMscanInput <- function(file, formats.read, file.mod, dir.data=NULL,
             break
         }
     }
-    if(is.null(type.file)) stop("None of the allowed file formats found.")
-    path.data.input <- info.datafile[[paste0("path.",type.file)]]
+    if(is.null(type.file)){
+        message(paste0("$DATA section extracted\n",info$datafile$DATA))
+        message("Based on that, data files related to this file were expected:\n",info$datafile$string)
+        stop("None of the allowed file formats found.")
+    }
+        path.data.input <- info.datafile[[paste0("path.",type.file)]]
     
     data.input <- NMreadCsv(path.data.input,as.fun="data.table",args.fread=args.fread,args.fst=args.fst,format=type.file)
     
@@ -191,7 +197,7 @@ NMscanInput <- function(file, formats.read, file.mod, dir.data=NULL,
     
 ### cnames.input is the names of columns as in input data file
     data.input <- NMtransInp(data.input,file,translate=translate,recover.cols=recover.cols)
-    data.input.0.trans <- NMtransInp(data.input.0,file,translate=translate,recover.cols=recover.cols)
+    data.input.0.trans <- NMtransInp(data.input.0,file,translate=translate,recover.cols=recover.cols,quiet=TRUE)
     
     col.id.inp <- col.id
     if(translate){
