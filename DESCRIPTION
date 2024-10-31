@@ -2,7 +2,7 @@ Package: NMdata
 Type: Package
 Title: Preparation, Checking and Post-Processing Data for PK/PD
         Modeling
-Version: 0.1.7
+Version: 0.1.8
 Authors@R: 
   c(person(given="Philip", family="Delff",
      email = "philip@delff.dk",
@@ -20,13 +20,13 @@ Imports: data.table, fst
 Suggests: testthat, knitr, NMsim, NMcalc, formatR, mime, rmarkdown,
         ggplot2, tibble, covr, htmltools, spelling
 Encoding: UTF-8
-URL: https://philipdelff.github.io/NMdata/
-BugReports: https://github.com/philipdelff/NMdata/issues
+BugReports: https://github.com/nmautoverse/NMdata/issues
 Language: en-US
+URL: https://nmautoverse.github.io/NMdata/
 NeedsCompilation: no
-Packaged: 2024-08-26 12:34:48 UTC; philipde
+Packaged: 2024-10-31 02:50:06 UTC; philipde
 Author: Philip Delff [aut, cre],
   Eric Anderson [ctb],
   Matthew Fidler [ctb]
 Repository: CRAN
-Date/Publication: 2024-08-26 13:10:05 UTC
+Date/Publication: 2024-10-31 09:10:07 UTC

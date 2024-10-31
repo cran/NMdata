@@ -1,3 +1,35 @@
+# NMdata 0.1.8
+
+## New features
+
+* If truncating/dropping columns in the csv file, `NMwriteData()`
+  accepts data with commas in values, even when writing to csv
+  files. The way `NMwriteData()` writes csv files, commas in character
+  columns are a problem. But the `trunc.csv.as.nm=TRUE` argument means
+  that columns not used by Nonmem (i.e. including most character
+  columns) are not written to csv. Instead of rejecting these data
+  sets right away, `NMwriteData()` will now only return an error
+  ifcharacter variables with commas in values are attempted written to
+  csv file.
+
+* `NMscanTables()` includes model name in meta data table. Useful for
+  generation of overviews of output tables from multiple models.
+
+## Bugfixes
+
+* Support for data file names including substrings "ACCEPT" and "IGN"
+  is added. Before, such data set file names could lead to failure if
+  interpreting data subsetting filters (ACCEPT and IGN(ORE)) in Nonmem
+  control streams.
+
+## Other improvements
+
+* NMscanMultiple would sometimes print a bit of a messy overview of
+  the results. That has been fixed without implications on the results
+  returned.
+  
+* dt2mat() now returns actual matrix objects. This provides
+  compatibility with the simpar package.
 
 # NMdata 0.1.7
 
@@ -45,7 +77,6 @@ overwrite with columns in y
 
   - `common.cols="drop.y"` to preserve in `x`
 
-
   - `base::stop` The default value. Throw an error if common.columns
 are not included in merge `by` options.
 
@@ -54,7 +85,6 @@ and ".y".
 
   - Any function. `common.cols=warning` will issue a warning instead
 of throwing an error.
-
 
 
 * `NMreadExt()` separates objective function values into a separate list
@@ -96,7 +126,6 @@ of throwing an error.
   `as.fun` was set to returning something else than `data.table`s. Fixed.
 
 
-
 # NMdata 0.1.6
 
 ## New features
@@ -104,7 +133,7 @@ of throwing an error.
 * Function `NMreadShk()` to read and format `.shk` (shrinkage) files.
 
 * Functions `mat2dt()` and `dt2mat()` included to convert between
-  matrices and data.frame format of matrix data - especially for
+  matrices and `data.frame` format of matrix data - especially for
   symmetric matrices.
   
 * Function `addOmegaCorr()` adds estimated correlation between ETAs to
