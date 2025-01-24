@@ -219,30 +219,32 @@ NMcheckData <- function(data,file,covs,covs.occ,cols.num,col.id="ID",
     ADDL <- NULL
     AMT <- NULL
     CMT <- NULL
+    column <- NULL
+    check <- NULL
+    checkTimeInc <- NULL
+    cov <- NULL
     ## DV <- NULL
     EVID <- NULL
     ID.jump <- NULL
     ## ID <- NULL
     II <- NULL
+    isnewID <- NULL
+    level <- NULL
     MDVDV <- NULL
     MDV <- NULL
     N <- NULL
+    newID <- NULL
+    NidByUID <- NULL
+    Nids <- NULL
     Nrep <- NULL
+    Nrows <- NULL
+    NUID <- NULL
+    occ <- NULL
     RATE <- NULL
+    reset <- NULL
     ROW <- NULL
     SS <- NULL
-    column <- NULL
-    check <- NULL
-    checkTimeInc <- NULL
-    cov <- NULL
-    newID <- NULL
-    isnewID <- NULL
-    level <- NULL
-    occ <- NULL
-    reset <- NULL
     variable <- NULL
-    NUID <- NULL
-    NidByUID <- NULL
     usubjNotUnique <- NULL
     
 ### Section end: Dummy variables, only not to get NOTE's in pacakge checks
@@ -472,7 +474,11 @@ NMcheckData <- function(data,file,covs,covs.occ,cols.num,col.id="ID",
             setorderv(findings,c(c.row,"column","check"))
 
             
-            summary.findings <- findings[,.(.N,Nid=uniqueN(get(col.id)[!is.na(get(col.id))])),by=.(column,check)]
+            summary.findings <- findings[,.(Nids=uniqueN(get(col.id)[!is.na(get(col.id))]),Nrows=.N),by=.(level,check,column)]
+            summary.findings[level=="column",Nids:=NA]
+            summary.findings[level=="column",Nrows:=NA]
+            summary.findings[level=="ID",Nrows:=NA]
+            summary.findings[,level:=NULL]
             
             if(!quiet) print(summary.findings,row.names=FALSE)
 
@@ -768,16 +774,17 @@ NMcheckData <- function(data,file,covs,covs.occ,cols.num,col.id="ID",
         findings <- listEvents(col.dv,"DV not NA or 0 in dosing recs",fun=function(x)is.na(x)|as.numeric(x)==0,events=findings,dat=data[EVID%in%c(1,4)])
     }
 
-
+    
 #### AMT
     ## must be numeric
     findings <- listEvents(col.amt,name="Not numeric",
                            fun=function(x)NMisNumeric(x,na.strings=na.strings,each=TRUE),
-                           events=findings,                           
-                           dat=data) 
+                           events=findings,
+                           ## new.rows.only=F,
+                           dat=data)
     ## positive for EVID 1 and 4
-    findings <- listEvents(col.amt,"Non-positive dose amounts",
-                           fun=function(x)x>0,events=findings,
+    findings <- listEvents(col.amt,"Non-positive or NA dose amounts",
+                           fun=function(x)!is.na(x)&x>0,events=findings,
                            dat=data[EVID%in%c(1,4)])
     ## must be 0 or NA for EVID 0 and 2
     findings <- listEvents(col.amt,"Non-zero dose for obs or sim record",

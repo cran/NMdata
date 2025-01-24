@@ -40,6 +40,7 @@ test_that("nm.drop is an empty string - not allowed",{
                           ,file="testOutput/NMwriteDataTmp.csv"
                           ,write.rds=F,write.csv=F
                           ,nm.drop=""
+                          ,genText=TRUE
                            ## ,args.rds=list(version=2)
                            )
     )
@@ -50,9 +51,10 @@ test_that("Dropping a column in Nonmem",{
     fileRef <- "testReference/NMwriteData_2.rds"
     pk <- readRDS(file=system.file("examples/data/xgxr2.rds",package="NMdata"))
     res2 <- NMwriteData(pk,file="testOutput/NMwriteDataTmp.csv",
-                        write.rds=F,write.csv=F,
-                        nm.drop="PART",
-                        nmdir.data="/example")
+                        save=FALSE,
+                        nm.drop="PART"
+                       ,genText=TRUE
+                       ,nmdir.data="/example")
     res2 <- fix.input(res2)
     
     expect_equal_to_reference(
@@ -64,8 +66,9 @@ test_that("Dropping a column in Nonmem",{
     fileRef <- "testReference/NMwriteData_3.rds"
 
     res2b <- NMwriteData(pk,file="testOutput/NMwriteDataTmp.csv",
-                         write.rds=F,write.csv=F,
-                         nm.drop="CYCLE",
+                         save=FALSE,
+                        ,genText=TRUE
+                        ,nm.drop="CYCLE",
                          nmdir.data="/example")
     res2b <- fix.input(res2b)
 
@@ -80,7 +83,8 @@ test_that("Dropping a column in Nonmem",{
 test_that("A comma in a character",{
 
     ## pk <- readRDS(file=system.file("examples/data/xgxr2.rds",package="NMdata"))
-    pk <- readRDS(file="testData/data/xgxr2.rds") |> setDT()
+    pk <- readRDS(file="testData/data/xgxr2.rds")
+    setDT(pk)
     ## dropping a character column
     pk[,CYCLE:=paste0(as.character(CYCLE),",0")]
 
@@ -97,7 +101,8 @@ test_that("A comma in a character",{
 
 test_that("Identical column names",{
 
-    pk <- readRDS(file="testData/data/xgxr2.rds") |> setDT()
+    pk <- readRDS(file="testData/data/xgxr2.rds") 
+    setDT(pk)
     pk <- cbind(pk[,.(CYCLE)],pk)
     expect_warning(NMwriteData(pk,file="testOutput/NMwriteDataTmp.csv"
                               ,write.rds=F,write.csv=F
@@ -112,7 +117,8 @@ test_that("nm.copy, nm.rename, drop",{
     ##    pk <- readRDS(system.file("examples/data/xgxr1.rds",package="NMdata"))
     pk <- readRDS(file=system.file("examples/data/xgxr2.rds",package="NMdata"))
     nmCode <- NMwriteData(pk,file="testOutput/NMwriteDataTmp.csv",
-                          write.csv=FALSE,
+                          write.csv=FALSE
+                         ,genText=TRUE,
 ### arguments that tailors text for Nonmem
                           ## PSN compatibility
                           args.NMgenText=list(dir.data="../derived",drop="PROFDAY",copy=c(CONC="DV"),rename=c(BBW="WEIGHTB"),capitalize=TRUE,width=80),args.rds=list(version=2))
@@ -152,12 +158,18 @@ test_that("with stamp",{
     pk <- readRDS(file=system.file("examples/data/xgxr2.rds",package="NMdata"))
 
     res1 <- NMwriteData(pk,file=NULL,
-                        write.rds=F,write.csv=F,nmdir.data="/example",script="A simple test")
+                        save=FALSE,
+                        genText=T,
+                        nmdir.data="/example",script="A simple test")
     res1 <- fix.input(res1)
 
     expect_equal_to_reference(
         res1
        ,fileRef,version=2)
+
+    if(F){
+        readRDS(fileRef)
+    }
 })
 
 test_that("with stamp on csv",{
@@ -309,9 +321,9 @@ test_that("Non-numeric DATE and TIME",{
     fileRef <- "testReference/NMwriteData_13.rds"
     outfile <- "testOutput/NMwriteData_13.csv"
     
-    pk <- readRDS(file="testData/data/xgxr2.rds") |> setDT()
+    pk <- readRDS(file="testData/data/xgxr2.rds")
+    setDT(pk)
 
-    ## pk <- fix.input(pk)
     
     pk[,time.tz:=as.POSIXct("2000/01/01",tz="UTC")+TIME*3600]
     ## pk[,DATE:=as.character(as.Date(time.tz),format="%y/%m/%d")]
@@ -336,6 +348,6 @@ test_that("Non-numeric DATE and TIME",{
     if(F){
         ref <- readRDS(fileRef)
         compareCols(res,ref)
-}
+    }
 
 })

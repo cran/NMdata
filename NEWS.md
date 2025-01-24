@@ -1,3 +1,76 @@
+# NMdata 0.1.9
+
+## New features
+* `NMreadInits()` is a new function adding the ability to read the
+  parameter structure as specified in a control stream, including
+  initial values, lower/upper bounds and FIX information. It
+  automatically allocates these values to parameter indexes, like
+  `THETA(I)` and `OMEGA(I,J)`. It by default returns a table of
+  parameters and values in a format similar to `NMreadExt()`, and if
+  requested it can return detailed information about the text lines
+  and each element read in the control stream to derive this parameter
+  table. These details can be used to edit the values and write back
+  the information in a control stream with consistent
+  formatting. NMsim::NMwriteInits() does this allowing NMsim() to edit
+  the `$THETA`, `$OMEGA` and `$SIGMA` sections.
+  
+* `NMreadParsText()` now by default uses `NMreadInits()` to index
+  parameters. You can still override this by specifying an index
+  column (the old default) for all or some of the parameter sections.
+
+* `NMwriteSection()` gains two new options for the `location`
+  argument: "first" and "last".
+
+* `NMgenText()` can now be run on a data file. `NMgenText()` suggest
+  `$DATA` and `$INPUT` sections based on a data set. Previously a data
+  object had to be passed to the function. Now also just a path to the
+  data set on file can be used.
+
+* `fnAppend()` can now append to strings that do not have a file name
+  extension. `fnAppend()` is mainly intended for editing file names
+  with file name extensions but for programming purposes, this
+  generalization is useful.
+
+* `addCor()` is a new function, deprecating
+  `addOmegaCorr()`. `addCor()` works similarly and adds correlations
+  for both `OMEGA` and `SIGMA` elements, as found in provided
+  parameter table.
+
+## Bugfixes
+* `NMreadExt()` was incorrectly calculating blocksize for some
+  OMEGAs. Thanks to Brian Reilly for proposing a bugfix!
+
+* `mat2dt()` was doing the opposite to what was specified by the
+  `triangle` argument and returned the upper triangle when
+  `triangle=lower` and vice versa.
+  
+* `NMwriteSection()` would fail if the first section in a control
+  stream was modified.
+
+* `NMrelate()` was ignoring the `par.type` argument.
+
+* `dt2mat()` would only work on `data.table`s. Support for other
+  `data.frame`s added.
+
+## Other minor improvements
+* `addTAPD()` has a few improvements on documentations and the following
+  improvements on code. Together they imply that `by` defaults to
+  `NMdataConf()$col.id`.
+
+ - `col.id` and `col.time` now respect `NMdataConf()` defaults.
+
+ - `by` defaults to value of `col.id`. 
+
+* `NMcheckData()` did not check for missing (NA) values on dose
+  events. Checks now capture this.
+
+* `NMgenText()` now looks up `col.flagn` using `NMdataConf()` for
+  default value.
+
+* `NMwriteData()` can now control stamping using `args.stamp` even if
+  no `script` is provided. Also, it now only runs `NMgenText()` if
+  writing csv files.
+
 # NMdata 0.1.8
 
 ## New features
@@ -24,11 +97,11 @@
 
 ## Other improvements
 
-* NMscanMultiple would sometimes print a bit of a messy overview of
+* `NMscanMultiple()` would sometimes print a bit of a messy overview of
   the results. That has been fixed without implications on the results
   returned.
   
-* dt2mat() now returns actual matrix objects. This provides
+* `dt2mat()` now returns actual matrix objects. This provides
   compatibility with the simpar package.
 
 # NMdata 0.1.7
