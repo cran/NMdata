@@ -54,16 +54,17 @@
 ##'     are simultaneous events of different event types within
 ##'     subjects. Typically if using nominal time, it may be important
 ##'     to specify whether samples at dosing times are pre-dose
-##'     samples. The default is c(3,0,4,1,2) - i.e. samples and
+##'     samples. The default is `c(3,0,4,1,2)` - i.e. samples and
 ##'     simulations are pre-dose. See details.
 ##' @param by Columns to do calculations within. Default is ID.
 ##' @param SDOS Scaling value for columns related to dose amount,
 ##'     relative to AMT values. col.pdosamt and col.doscuma are
 ##'     affected and will be derived as AMT/SDOSE.
+##' @param quiet Suppress messages? Default can be set using `NMdataConf()`.
 ##' @param as.fun The default is to return data as a data.frame. Pass
-##'     a function (say tibble::as_tibble) in as.fun to convert to
+##'     a function (say `tibble::as_tibble`) in as.fun to convert to
 ##'     something else. If data.tables are wanted, use
-##'     as.fun="data.table". The default can be configured using
+##'     `as.fun="data.table"`. The default can be configured using
 ##'     NMdataConf.
 ##' @param col.ndoses Deprecated. Use col.doscumn instead.
 ##' @details addTAPD does not require the data to be ordered, and it
@@ -82,7 +83,7 @@
 ##' @family DataCreate
 
 
-addTAPD <- function(data,col.id,col.time,col.evid="EVID",col.amt="AMT",col.tpdos="TPDOS",col.tapd="TAPD",col.pdosamt="PDOSAMT",col.doscuma="DOSCUMA",col.doscumn="DOSCUMN",prefix.cols,suffix.cols,subset.dos,subset.is.complete,order.evid = c(3,0,2,4,1),by,SDOS=1,as.fun,col.ndoses){
+addTAPD <- function(data,col.id,col.time,col.evid="EVID",col.amt="AMT",col.tpdos="TPDOS",col.tapd="TAPD",col.pdosamt="PDOSAMT",col.doscuma="DOSCUMA",col.doscumn="DOSCUMN",prefix.cols,suffix.cols,subset.dos,subset.is.complete,order.evid = c(3,0,2,4,1),by,SDOS=1,quiet,as.fun,col.ndoses){
 
     
     
@@ -100,6 +101,8 @@ addTAPD <- function(data,col.id,col.time,col.evid="EVID",col.amt="AMT",col.tpdos
     col.id <- NMdataDecideOption("col.id",col.id)
     if(missing(col.time)) col.time <- NULL
     col.time <- NMdataDecideOption("col.time",col.time)
+    if(missing(quiet)) quiet <- NULL
+    quiet <- NMdataDecideOption("quiet",quiet)
     if(missing(by)) by <- NULL
     if(is.null(by)) by <- col.id
     

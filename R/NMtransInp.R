@@ -49,7 +49,7 @@ NMtransInp <- function(data,file,translate=TRUE,recover.cols=TRUE,quiet=FALSE){
     line <- gsub(" +"," ",paste(lines,collapse=" "))
     line <- sub("^ ","",line)
     line <- sub(" $","",line)
-    ## not sure what DV =A would do but it may be valid, so reduce to DV=A
+    ## not sure what "DV =A", "DV= A" or "DV = A" would do but it may be valid, so reduce to DV=A
     line <- sub(" *= *","=",line)
 
     
@@ -77,6 +77,11 @@ NMtransInp <- function(data,file,translate=TRUE,recover.cols=TRUE,quiet=FALSE){
     cnames.input.0 <- copy(colnames(data))
     cnames.input <- copy(cnames.input.0)
 
+    if(!recover.cols){
+        data <- data[,1:length(nms)]
+    }
+
+
     if(translate){
         if(length(nms)>length(cnames.input)){
             nms <- nms[1:length(cnames.input)]
@@ -94,9 +99,11 @@ NMtransInp <- function(data,file,translate=TRUE,recover.cols=TRUE,quiet=FALSE){
         
         ## add the synononyms
         if(!is.null(renamed.from)){
+            
             data <- cbind(data,
                           setnames(data[,c(renamed.to),with=FALSE],old=renamed.to,new=renamed.from)
                           )
+            
         }
         
         ## check for unique column names
@@ -117,13 +124,6 @@ NMtransInp <- function(data,file,translate=TRUE,recover.cols=TRUE,quiet=FALSE){
             
             data <- data[,unique(cnames.input),with=FALSE]
         }
-    }
-
-    ## if(!translate && !recover.cols){
-    ##     data <- data[,1:length(nms)]
-    ## }
-    if(!recover.cols){
-        data <- data[,1:length(nms)]
     }
 
 

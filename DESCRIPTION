@@ -2,7 +2,7 @@ Package: NMdata
 Type: Package
 Title: Preparation, Checking and Post-Processing Data for PK/PD
         Modeling
-Version: 0.1.9
+Version: 0.2.0
 Authors@R: 
   c(person(given="Philip", family="Delff",email = "philip@delff.dk",role = c("aut", "cre")),
     person("Brian", "Reilly", email = "reilly.brian.m@gmail.com",role = c("ctb")),
@@ -21,10 +21,10 @@ BugReports: https://github.com/nmautoverse/NMdata/issues
 Language: en-US
 URL: https://nmautoverse.github.io/NMdata/
 NeedsCompilation: no
-Packaged: 2025-01-24 11:54:58 UTC; philipde
+Packaged: 2025-03-21 21:53:30 UTC; philipde
 Author: Philip Delff [aut, cre],
   Brian Reilly [ctb],
   Eric Anderson [ctb],
   Matthew Fidler [ctb]
 Repository: CRAN
-Date/Publication: 2025-01-24 13:00:10 UTC
+Date/Publication: 2025-03-21 22:30:07 UTC

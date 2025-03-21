@@ -66,7 +66,7 @@ test_that("single = filter",{
     file.lst <- "testData/nonmem/xgxr009.lst"
     ## NMgetSection(file.lst,section="PROBLEM")
     ## NMgetSection(file.lst,section="DATA")
-    res <- NMscanInput(file=file.lst,applyFilters = T,as.fun="data.table")
+    res <- NMscanInput(file=file.lst,apply.filters = T,as.fun="data.table")
     expect_equal(res[,unique(DOSE)],10)
     
 })
@@ -186,11 +186,21 @@ test_that("Multiple filters on same column",{
 test_that("ID only from pseudonym",{
     NMdataConf(as.fun="data.table")
     fileRef <- "testReference/NMscanInput_10.rds"
+    file.mod <- "testData/nonmem/pred030.mod"
+    NMreadSection(file.mod,section="input")
+    NMextractDataFile(file.mod)$path.csv |> readLines(n=3)
 
-    inp <- NMscanInput("testData/nonmem/pred030.mod")
+    inp <- NMscanInput(file.mod)
+    inp2 <- NMscanInput(file.mod,translate=F)
+        
     inp <- fix.time(inp)    
-
+    
     expect_equal_to_reference(inp,fileRef,version=2)
+    expect_equal(setdiff(colnames(inp),colnames(inp2)),"ID")
+
+    inp3 <- NMscanInput(file.mod,translate=T,recover.cols = FALSE)
+    expect_equal(colnames(inp),colnames(inp3))
+
 })
 
 

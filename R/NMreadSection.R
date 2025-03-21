@@ -42,7 +42,6 @@
 ##' @param keepEmpty Deprecated. See keep.empty.
 ##' @param keepName Deprecated. See keep.name.
 ##' @param asOne Deprecated. See as.one.
-##' @return character vector with extracted lines.
 ##' @param ... Additional arguments passed to NMextractText
 ##' @return character vector with extracted lines.
 ##' @family Nonmem
@@ -142,11 +141,10 @@ NMreadSection <- function(file=NULL, lines=NULL, text=NULL, section, return="tex
     
 }
 
-##' @describeIn NMreadSection Deprecated function name. Use NMreadSection.
+## ##' @describeIn NMreadSection Deprecated function name. Use NMreadSection.
 ## Deprecated way before 2023-06-12
-NMgetSection <- function(...){
-    .Deprecated("NMreadSection")
-    NMreadSection(...)
-    
-}
+## NMgetSection <- function(...){
+##     .Deprecated("NMreadSection")
+##     NMreadSection(...)
+## }
 
