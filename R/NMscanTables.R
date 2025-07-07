@@ -65,7 +65,7 @@
 ##' @export
 
 NMscanTables <- function(file,as.fun,quiet,col.nmrep=TRUE,col.tableno=FALSE,col.id="ID",col.row,details,skip.absent=FALSE,meta.only=FALSE,modelname,
-                       col.model){
+                         col.model){
     
 #### Section start: Dummy variables, only not to get NOTE's in package checks ####
 
@@ -86,6 +86,7 @@ NMscanTables <- function(file,as.fun,quiet,col.nmrep=TRUE,col.tableno=FALSE,col.
     nid <- NULL
     noheader <- NULL
     scope <- NULL
+    sep <- NULL
 
 ###  Section end: Dummy variables, only not to get NOTE's in pacakge checks ####
     
@@ -103,7 +104,6 @@ NMscanTables <- function(file,as.fun,quiet,col.nmrep=TRUE,col.tableno=FALSE,col.
     ## args <- getArgs()
     args <- getArgs(sys.call(),parent.frame())
     deprecatedArg(oldarg="details",args=args)
-
 
     if(missing(col.model)||!is.null(col.model)) {
         if(missing(col.model)) {
@@ -147,7 +147,13 @@ NMscanTables <- function(file,as.fun,quiet,col.nmrep=TRUE,col.tableno=FALSE,col.
 
     meta <- rbindlist(tab.files)
     ## seperator is not being used, so left out from metadata
-    ##sep=ifelse(grepl(",",format),","," "),
+    meta[,sep:=fifelse(grepl(",",format),",",
+                       fifelse(grepl("t",format),"\t",
+                               fifelse(grepl("s",format)," ",
+                                       fifelse(grepl(";",format),";",
+                                               "auto"
+                                               ))))
+         ]
     meta[,`:=`(nrow=NA_real_
               ,ncol=NA_real_
                )]
@@ -169,6 +175,7 @@ NMscanTables <- function(file,as.fun,quiet,col.nmrep=TRUE,col.tableno=FALSE,col.
     if(meta.only){
         setcolorder(meta,intersect(c(col.model,"source","name","nrow","ncol","nid","level","scope","has.col.row","has.col.id","full.length","filetype","format",
                                      "file.mtime","file"),colnames(meta)))
+        ##meta[,sep:=NULL]
         return(as.fun(meta))
     }
 
@@ -182,7 +189,7 @@ NMscanTables <- function(file,as.fun,quiet,col.nmrep=TRUE,col.tableno=FALSE,col.
             stop(paste0("NMscanTables: File not found: ",meta[I,file],". Did you copy the lst file but forgot table file?"))
         }
         
-        tables[[I]] <- NMreadTab(meta[I,file],quiet=TRUE,col.nmrep=col.nmrep,col.tableno=col.tableno,showProgress=FALSE,as.fun=identity,header=meta[I,!noheader],col.table.name=FALSE)
+        tables[[I]] <- NMreadTab(meta[I,file],quiet=TRUE,col.nmrep=col.nmrep,col.tableno=col.tableno,showProgress=FALSE,as.fun=identity,header=meta[I,!noheader],sep=meta[I,sep],col.table.name=FALSE)
 ### to not include NMREP when counting columns
         ## dim.tmp <- dim(tables[[I]][,!colnames(tables[[I]])=="NMREP",with=FALSE])
         dim.tmp <- dim(tables[[I]])
@@ -202,7 +209,7 @@ NMscanTables <- function(file,as.fun,quiet,col.nmrep=TRUE,col.tableno=FALSE,col.
             cnames.text <- sub(paste0("(",cnames.notcols,collapse="|",").*"),"",cnames.text)
 
             cnames.all <- strsplit(cnames.text," ")[[1]]
-                        
+            
             cnames.extra <- cc(DV,PRED,RES,WRES)
             cnames.extra <- setdiff(cnames.extra,cnames.all)
             ncol.I <- ncol(tables[[I]])
@@ -224,7 +231,7 @@ NMscanTables <- function(file,as.fun,quiet,col.nmrep=TRUE,col.tableno=FALSE,col.
         }
         
         cnames.tab.I <- colnames(tables[[I]])
-
+        
         if(col.id%in%cnames.tab.I){
             meta[I,nid:=tables[[I]][,uniqueN(get(col.id))]]
         } else {
@@ -267,7 +274,8 @@ NMscanTables <- function(file,as.fun,quiet,col.nmrep=TRUE,col.tableno=FALSE,col.
     ## sep not used so omitted 
     setcolorder(meta,intersect(c(col.model,"source","name","nrow","ncol","nid","level","scope","has.col.row","has.col.id","full.length","filetype","format",
                                  "file.mtime","file"),colnames(meta)))
-    
+
+    ## meta[,sep:=NULL]
     
     if(!quiet){
         msg <- paste0("Number of output tables read: ",meta[exists==TRUE,.N])

@@ -14,6 +14,14 @@ test_that("basic",{
     res <- readLines(outfile)
     expect_equal_to_reference(res,fileRef,version=2)
 
+    if(FALSE){
+        ref <- readRDS(fileRef)
+        ref[1:5]
+        res[1:5]
+        length(ref)
+        length(res)
+    }
+    
 })
 
 
@@ -48,6 +56,15 @@ test_that("list.section",{
     res <- readLines(outfile)
     expect_equal_to_reference(res,fileRef,version=2)
 
+    if(FALSE){
+        ref <- readRDS(fileRef)
+        ref[1:5]
+        res[1:5]
+        length(ref)
+        length(res)
+    }
+
+
 })
 
 
@@ -69,6 +86,15 @@ test_that("Dependent on data.file",{
 
     res <- readLines(outfile)
     expect_equal_to_reference(res,fileRef,version=2)
+
+    if(FALSE){
+        ref <- readRDS(fileRef)
+        ref[1:5]
+        res[1:5]
+        length(ref)
+        length(res)
+    }
+
 
 })
 
@@ -119,6 +145,15 @@ test_that("basic - write file",{
     res <- readLines(outfile)
     expect_equal_to_reference(res,fileRef,version=2)
 
+    if(FALSE){
+        ref <- readRDS(fileRef)
+        ref[1:5]
+        res[1:5]
+        length(ref)
+        length(res)
+    }
+
+    
 })
 
 
@@ -150,7 +185,7 @@ test_that("update INPUT based on NMgenText",{
 ##                          ,newfile=NULL
 ##                           )
 
-    
+
 ## })
 
 test_that("Insert new section before another",{
@@ -168,6 +203,15 @@ test_that("Insert new section before another",{
     res <- readLines(outfile)
     expect_equal_to_reference(res,fileRef,version=2)
 
+    if(FALSE){
+        ref <- readRDS(fileRef)
+        ref[1:5]
+        res[1:5]
+        length(ref)
+        length(res)
+    }
+
+    
 })
 
 
@@ -178,13 +222,14 @@ test_that("No newfile supplied",{
     outfile <- "testOutput/NMwriteSection_07.mod"
     file.copy("testData/nonmem/xgxr011.mod",outfile)
     
-    newlines <- "$INPUT ROW ID TIME EVID CMT AMT DV FLAG STUDY EFF0"
+    newlines <- "$INPUT ROW ID TIME EVID CMT AMT DV "
     section <- "input"
+    pre <- readLines(outfile)
     NMwriteSection(files=outfile
                   ,section=section
                   ,newlines=newlines
                    )
-    res <- readLines(outfile)
+    res <- NMreadSection(outfile,section="input")
     expect_equal_to_reference(res,fileRef,version=2)
 
 })
@@ -203,7 +248,7 @@ test_that("new section as a function",{
                           ,section="problem"
                           ,newlines=function(x)c(x,"an added line")
                           ,write=FALSE
-                   )
+                           )
     
     res <- list(in1=NMreadSection(infile,section="problem")
                ,out1=NMreadSection(lines=res1,section="problem")

@@ -53,22 +53,29 @@ test_that("SDOSE",{
 
 
 test_that("Repeated doses without samples",{
-    library(NMsim)
 
     fileRef <- "testReference/addTAPD_04.rds"
     
     NMdataConf(as.fun="data.table")
 
-    doses.1 <- NMcreateDoses(TIME=c(0,3,12,24),CMT=1,AMT=400e3)
-    doses.2 <- NMcreateDoses(TIME=0,addl=list(ADDL=4,II=6),CMT=2,AMT=20)
-    doses.all <- rbind(doses.1,doses.2,fill=TRUE)
-    doses.all <- egdt(doses.all[,!("ID")],data.table(ID=1:2),quiet=TRUE)
+    if(F){
+        NMdataConf(as.fun="data.table")
+        library(NMsim)
+        doses.1 <- NMcreateDoses(TIME=c(0,3,12,24),CMT=1,AMT=400e3)
+        doses.2 <- NMcreateDoses(TIME=0,addl=list(ADDL=4,II=6),CMT=2,AMT=20)
+        doses.all <- rbind(doses.1,doses.2,fill=TRUE)
+        doses.all <- egdt(doses.all[,!("ID")],data.table(ID=1:2),quiet=TRUE)
+        saveRDS(doses.all,file="testData/data/doses_set1.rds",version=2)
+    } else {
+        doses.all <- readRDS(file="testData/data/doses_set1.rds")
+    }
+    
     ## dat.all <- addEVID2(doses.all,time.sim=seq(0,26,by=2),CMT=3)
     dat.all <- doses.all
     dat.all <- NMorderColumns(dat.all)
     dat.all[,ROW:=.I]
 
-    #setorder(dat.all,ID,TIME)
+                                        #setorder(dat.all,ID,TIME)
     
     res <- addTAPD(dat.all[EVID==1])
     ## addTAPD(
@@ -78,6 +85,21 @@ test_that("Repeated doses without samples",{
     expect_equal_to_reference(res,fileRef)
     
 })
+
+
+test_that("Subjects without doses",{
+    fileRef <- "testReference/addTAPD_05.rds"
+    ## resRef <- readRDS(fileRef)
+    
+    dat <- readRDS("testData/data/xgxr2.rds")
+    dat <- dat[ID<100|EVID!=1]
+    res <- addTAPD(data=dat,as.fun="data.table")
+    ## res[ID==180]
+
+    expect_equal_to_reference(res,fileRef,version=2)
+
+})
+
 
 if(F){
 ### this example shows most key features. Reduce number of rows and build examples and tests on it.

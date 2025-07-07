@@ -4,11 +4,19 @@
 
 ## load_all()
 
+noTime <- function(res){
+    meta <- NMinfoDT(res)
+    meta$tables[,file:=basename(file)]
+    meta$tables$file.mtime <- NULL
+    writeNMinfo(res,meta)
+    res
+}
+
 context("NMscanTables")
 
 test_that("Multiple output table formats",{
 
-    fileRef <- "testReference/NMscanTables1.rds"
+    fileRef <- "testReference/NMscanTables_01.rds"
     ## file.lst <- system.file("examples/nonmem/xgxr003.lst",package="NMdata")
     file.lst <- "testData/nonmem/xgxr003.lst"
 
@@ -20,8 +28,12 @@ test_that("Multiple output table formats",{
     expect_equal_to_reference(res.dt,fileRef,version=2)
 
     if(F){
+        ref <- readRDS(fileRef)
         res.dt
-        readRDS(fileRef)
+
+        lapply(res.dt,head)
+        lapply(ref,head)
+
         NMinfo(readRDS(fileRef),"tables")
     }
     
@@ -39,7 +51,7 @@ test_that("Multiple output table formats",{
 
 
 test_that("Details table",{
-    fileRef <- "testReference/NMscanTables2.rds"
+    fileRef <- "testReference/NMscanTables_02.rds"
     file.lst <- system.file("examples/nonmem/xgxr003.lst", package="NMdata")
 
     res <- NMscanTables(file=file.lst,as.fun="data.table",col.tableno="NMREP")
@@ -72,7 +84,7 @@ test_that("$TABLE header options",{
 
 test_that("Two firstonly, one full-length",{
 
-    fileRef <- "testReference/NMscanTables4.rds"
+    fileRef <- "testReference/NMscanTables_04.rds"
     ## ref <- readRDS(fileRef)
     file.lst <- "testData/nonmem/xgxr025.lst"
 
@@ -131,3 +143,21 @@ test_that("Table with repetitions",{
     
     expect_equal_to_reference(res,fileRef,version=2)
 })
+
+
+## load_all("~/wdirs/NMdata")
+test_that("more tab formats",{
+    fileRef <- "testReference/NMscanTables_08.rds"
+    
+    ## res <- NMreadTab("testData/nonmem/xgxr035_tabres.txt",sep="\t")
+    ## head(res)
+
+    res <- NMscanTables("testData/nonmem/xgxr035.lst")
+    lapply(res,head)
+
+    res <- noTime(res)
+    expect_equal_to_reference(res,fileRef,version=2)
+
+    attributes(res)
+})
+

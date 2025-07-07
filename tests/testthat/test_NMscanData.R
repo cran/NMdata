@@ -35,7 +35,7 @@ fix.time <- function(x){
 NMdataConf(reset=TRUE)
 test_that("basic",{
 
-    fileRef <- "testReference/NMscanData1.rds"
+    fileRef <- "testReference/NMscanData_01.rds"
     resRef <- if(file.exists(fileRef)) readRDS(fileRef) else NULL
     
     ## file.lst <- "../../inst/examples/nonmem/run001.lst"
@@ -59,7 +59,7 @@ test_that("basic",{
 
 test_that("Modifications to column names in $INPUT",{
 
-    fileRef <- "testReference/NMscanData2.rds"
+    fileRef <- "testReference/NMscanData_02.rds"
     ## res.ref <- readRDS(fileRef)
     
     ## file.lst <- NMdata_filepath("examples/nonmem/xgxr002.lst")
@@ -81,7 +81,7 @@ test_that("Modifications to column names in $INPUT",{
 
 test_that("No translation of column names in $INPUT",{
 
-    fileRef <- "testReference/NMscanData2b.rds"
+    fileRef <- "testReference/NMscanData_02b.rds"
     ## res.ref <- readRDS(fileRef)
     
     file.lst <- "testData/nonmem/xgxr002.lst"
@@ -121,7 +121,7 @@ test_that("Multiple output table formats",{
 test_that("Interpret IGNORE statement",{
 
     NMdataConf(reset=TRUE)
-    fileRef <- "testReference/NMscanData4.rds"
+    fileRef <- "testReference/NMscanData_04.rds"
     ## file.lst <- NMdata_filepath("examples/nonmem/xgxr004.lst")
     file.lst <- "testData/nonmem/xgxr004.lst"
 
@@ -235,7 +235,7 @@ test_that("Only a firstonly, no ID, no ROW",{
     ## this one only outputs a firstonly that cannot be merged onto
     ## input. use.input=T so input data should be returned.
 
-    fileRef <- "testReference/NMscanData12.rds"
+    fileRef <- "testReference/NMscanData_12.rds"
 
     ## file.lst <- NMdata_filepath("examples/nonmem/xgxr012.lst")
     file.lst <- "testData/nonmem/xgxr012.lst"
@@ -317,7 +317,7 @@ test_that("FO and row-level output. No ID, no row. cbind.by.filters=T",{
 test_that("Only a firstonly without ID but with ROW",{
 ### cbind.by.filters is TRUE, so ROW is not used to recover firstonly data.
 
-    fileRef <- "testReference/NMscanData15.rds"
+    fileRef <- "testReference/NMscanData_15.rds"
 
     ## file.lst <- NMdata_filepath("examples/nonmem/xgxr011.lst")
     file.lst <- "testData/nonmem/xgxr011.lst"
@@ -787,7 +787,7 @@ test_that("redundant output",{
 if(FALSE){
     test_that("check time warning",{
         NMdataConf(reset=T)
-        fileRef <- "testReference/NMscanData26.rds"
+        fileRef <- "testReference/NMscanData_26.rds"
         
         ## file.lst <- "testData/nonmem/xgxr001.lst"
 
@@ -899,7 +899,7 @@ test_that("Two firstonly, one full-length with col.nmrep",{
 
 test_that("Input data as character",{
 
-    fileRef <- "testReference/NMscanData29.rds"
+    fileRef <- "testReference/NMscanData_29.rds"
     file.lst <- "testData/nonmem/xgxr026.lst"
 
     expect_error(NMscanData(file=file.lst,check.time=F))
@@ -941,20 +941,22 @@ test_that("simulation model with subproblems",{
 
     if(F){
 ### sim a model with subproblems
-        ##library(devtools)
-        ##load_all("~/wdirs/NMsim")
+
+        ## library(devtools)
+        ## load_all("~/wdirs/NMsim")
+
         file.mod <- "testData/nonmem/xgxr014.mod"
         ## NMexec(file.mod,sge=FALSE,wait=T)
         doses <- NMcreateDoses(TIME=0,AMT=data.table(AMT=c(10,100),DOSE=c(10,100)))
-        simdat <- addEVID2(doses,TIME=c(1,24),CMT=2)
+        simdat <- NMaddSamples(doses,TIME=c(1,24),CMT=2,as.fun="data.table")
         simdat[,DV:=NA][
            ,ROW:=.I]
-        NMcheckData(simdat)
+        NMcheckData(simdat,type.data="sim")
 
         NMdataConf(as.fun="data.table")
 
         sim1 <- NMsim(file.mod,data=simdat,
-                      suffix.sim="testsim1"
+                      name.sim="testsim1"
                      ,dir.sim="testData/simulations"
                      ,seed.R=343108,
                       ## We don't want to store rds
@@ -976,6 +978,11 @@ test_that("simulation model with subproblems",{
     ## setattr(res,"NMdata",meta.x)
     unNMdata(res)
     expect_equal_to_reference(res,fileRef,version=2)
+    if(F){
+        ref <- readRDS(fileRef)
+        ref
+        res
+    }
 }
 )
 
@@ -1022,3 +1029,5 @@ test_that("inside lappy",{
     expect_equal(dims1[,uniqueN(ncols)],1)
 
 })
+
+

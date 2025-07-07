@@ -54,7 +54,7 @@
 
 
 NMreadTab <- function(file,col.tableno,col.nmrep,col.table.name,header=TRUE,skip,quiet=TRUE,as.fun,...) {
-
+    
 #### Section start: Dummy variables, only not to get NOTE's in pacakge checks ####
 
     TABLE <- NULL
@@ -153,7 +153,7 @@ NMreadTab <- function(file,col.tableno,col.nmrep,col.table.name,header=TRUE,skip
     dt1[grepl("^TABLE",as.character(get(cnames[1])),perl=TRUE),
     (col.tableno):=as.numeric(sub("^ *TABLE NO\\. *([0-9]+).*","\\1",get(col.table.name.text))),by=col.row.tmp]
     dt1[grepl("^TABLE",as.character(get(cnames[1])),perl=TRUE),
-    (col.table.name):=sub("^ *TABLE NO\\. *([1-9][0-9]+) *: *(.*)$","\\2",get(col.table.name.text)),
+    (col.table.name):=sub("^ *TABLE NO\\. *([1-9][0-9]*) *: *(.*)$","\\2",get(col.table.name.text)),
     by=col.row.tmp]
     ## getting rid of trailing spaces
     dt1[,(col.table.name):=sub(" *$","",get(col.table.name))]

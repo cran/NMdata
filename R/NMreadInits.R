@@ -152,6 +152,8 @@ classify_matches <- function(matches,patterns) {
 }
 
 ##' Assign i and j indexes based on parameter section text
+##'
+##' Internal function used by NMreadInits()
 ##' @param res elements as detected by `NMreadInits()`
 ##' @import data.table
 ##' @keywords internal
@@ -269,7 +271,6 @@ NMreadInits <- function(file,lines,section,return="pars",as.fun) {
     ## We want to keep everything, even empty lines so we can keep track of line numbers
     ## lines <- NMreadSection(lines=lines,section=section,keep.empty=TRUE,keep.comments=TRUE)
     ## if(length(lines)==0) return(NULL)
-
     
     if(missing(lines)) lines <- NULL
     if(missing(file)) file <- NULL
@@ -332,13 +333,11 @@ patterns <-
                   x=text.clean)]
 
     getMatches <- function(dt.lines){
+        ## Function to classify matches and insert NA where applicable
+        
         text.clean <- NULL
         matches <- regmatches(dt.lines[,text.clean],gregexpr(pattern,dt.lines[,text.clean],perl=TRUE))
         
-        ## Function to classify matches and insert NA where applicable
-
-
-
         matches.list <- lapply(seq_along(matches),function(I){
             match <- matches[[I]]
             if(length(match)==0) return(NULL)
@@ -395,6 +394,7 @@ patterns <-
     })
 
     res <- rbindlist(res.list)
+    res <- addParameter(res)
     
     pars <- initsToExt(res)
     if(return=="pars") return(as.fun(pars))

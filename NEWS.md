@@ -1,3 +1,53 @@
+# NMdata 0.2.1
+
+## New Features
+* `NMreadParsText()` supports `OMEGA` blocks valued `SAME`. This is
+  needed for generation of parameter tables for models with
+  between-occasion variability.
+
+* `NMdataConf()` gains a `quiet` argument. If \code{FALSE}, an
+  overview of the configuration changes is summarixfzed in a printed
+  table. This is useful for transparency when sourcing a file with
+  configuration. Default is \code{TRUE}.
+  
+* Improved printing of tables for messages with `message_dt()`. This
+  gives a cleaner and more consistent look of console outputs from
+  several functions in the package.
+
+## Bugfixes
+* `NMreadExt()` would in some situations with multiple estimation
+  steps not be able to read the `.ext` file. This has been fixed.
+
+* `NMscanTables()` - and hence `NMscanData()` would fail on some
+  output formats - especially it would not always detect if tabulators
+  were used as separators. More checks have been included to detect
+  this.
+  
+* `NMreadCov()` adds proper support for `.cov` files with multiple
+  tables. The function has been re-written for added
+  flexibility. Thanks to Brian Reilly for reporting this important
+  gap.
+  
+* Better identification of delimitors in output tables. Especially,
+  this helps identifying when tabulator characters er used as
+  delimtors. Until this fix, this would fail in some cases. It may
+  still not be bulletproof but it should now support most cases.
+
+## Other improvements
+* Generally, tabulator characters are now supported in control
+  streams. Tabulator characters would create issues in processing of
+  various sections of the control stream leading to issues in
+  functions such as `NMscanInput()` and `NMreadParText()` and others.
+
+* Summary of `NMscanData()` results has improved text to more clearly
+  describe the summary numbers shown.
+
+## Other Changes
+* `NMwriteInits`, `NMwriteFilters()`, and `NMwriteSizes()` are no
+  longer in NMdata. They are from now on distributed with NMsim
+  package because NMsim functions depend on it, and NMdata functions
+  do not.
+
 # NMdata 0.2.0
 
 ## New features 
