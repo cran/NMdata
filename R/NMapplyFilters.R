@@ -1,119 +1,71 @@
-##' Translate filters in Nonmem and apply to data
+##' Translate Nonmem filters to R code and apply to data
 ##' @param data An input data object. Could be read with NMreadCsv or
 ##'     NMscanInput.
-##' @param file Path to mod/lst file. Only one of file, text, or lines to be
-##'     given. See ?NMreadSection for understanding when to use, file, text, or
-##'     lines.
-##' @param text The mod/lst as characters.
+##' @param file Path to mod/lst file. Only one of file or lines
+##'     to be given. See `?NMreadSection` for understanding when to use,
+##'     file, or lines. Only used when `filters` not provided.
 ##' @param lines The mod/lst as character, line by line.
-##' @param invert Invert the filters? This means read what Nonmem would
-##'     disregard, and disregard what Nonmem would read.
-##' @param as.fun The default is to return data as a data.frame. Pass a function
-##'     (say tibble::as_tibble) in as.fun to convert to something else. If
-##'     data.tables are wanted, use as.fun="data.table". The default can be
-##'     configured using NMdataConf.
-##' @param quiet Don't report information along the way if no warnings or
-##'     errors. Default is FALSE.
-##' @details This is not bulletproof. Nested conditions are not supported altogether.
+##' @param filters A `data.frame` with filters as returned by
+##'     `NMreadFilters()`. If not supplied, filters will be read from
+##'     `file`/`lines`.
+##' @param invert Invert the filters? This means read what Nonmem
+##'     would disregard, and disregard what Nonmem would read.
+##' @param as.fun The default is to return data as a data.frame. Pass
+##'     a function (say tibble::as_tibble) in as.fun to convert to
+##'     something else. If data.tables are wanted, use
+##'     as.fun="data.table". The default can be configured using
+##'     NMdataConf.
+##' @param quiet Don't report information along the way if no warnings
+##'     or errors. Default is FALSE.
+##' @details This is not bulletproof. Nested conditions are not
+##'     supported altogether.
 ##' @return data with filters applied
+##' @seealso NMreadFilters
 ##' @keywords internal
 ##' @family Nonmem
 
 ## Don't export. This is only being used by NMscanInput at this point.
 
 
-NMapplyFilters <- function(data,file,text,lines,invert=FALSE,as.fun,quiet) {
+NMapplyFilters <- function(data,file,lines,filters,invert=FALSE,as.fun,quiet) {
     
 #### Section start: Dummy variables, only not to get NOTE's in pacakge checks ####
     
     . <- NULL
+    cond <- NULL
+    type <- NULL
     variable <- NULL
     value <- NULL
+
     
 ### Section end: Dummy variables, only not to get NOTE's in pacakge checks
-    
     
     if(missing(quiet)) quiet <- NULL
     quiet <- NMdataDecideOption("quiet",quiet)
     if(missing(as.fun)) as.fun <- NULL
     as.fun <- NMdataDecideOption("as.fun",as.fun)
     
-    ## get mod/lst text in lines format
-    if(sum(c(!missing(file)&&!is.null(file),
-             !missing(lines)&&!is.null(lines),
-             !missing(text)&&!is.null(text)
-             ))!=1){
-        messageWrap("Exactly one of file, lines, or text must be supplied",fun.msg=stop)
-    }
-    if(!missing(file)&&!is.null(file)) {
-        if(!file.exists(file)) messageWrap("When using the file argument, file has to point to an existing file.",fun.msg=stop)
-        lines <- readLines(file,warn=FALSE)
-    }
-    if(!missing(text)&&!is.null(text)) {
-        lines <- strsplit(text,split="\n")[[1]]
-    }
-
-    ## If these are not NULL, it can make trouble in NMreadSection.
-    file <- NULL
-    text <- NULL
 
 ### We leave meta data untouched. This part is due to a previous design of NMscanInput. 
     
     data.meta <- NMinfoDT(data)
-    
-    text2 <- NMreadSection(lines=lines,section="DATA",keep.comments=FALSE)
-    text3 <- sub(";.*$","",text2)
-    text3 <- gsub("\\t"," ",text3)
-    
-    ## replace the allowed IGN with IGNORE
-    ## the single-chacter ones line @ or C. Here = is mandatory.
-    ## conds.sc <- regmatches(text3, gregexpr(paste0("IGN(?:ORE)"," *= *[^ (+]"),text3))
-    
-    ## simplifying so IGNORE/IGN is always IGN
-    text3 <- gsub("IGNORE","IGN",text3)
 
     
-    ## ^(.* )* : if anything before IGN, there must be a space in between
-    ## conds.sc <- regmatches(text3, gregexpr("^(.* )*(?:IGN) *=* *[^ (+=]",text3))
-    conds.sc <- regmatches(text3, gregexpr("(?<![[:alnum:]])IGN *=* *[^ (+=]",text3,perl=T))
-    conds.sc
-    conds.sc <- do.call(c,conds.sc)
-### getting rid of single char conditions
-    
-    ## text3 <- gsub(paste0("^(\\(.* \\)*)IGN"," *=* *[^ (+=]"),"\\1",text3)
-    ## gsub("^((.* )*)IGN *=* *[^ (+=](.*)","\\1\\2",text3)
-    ## gsub("((.* )*)IGN *=* *[^ (+=](.*)","\\1\\2",text3)
-    text3 <- gsub("(?<![[:alnum:]])IGN *=* *[^ (+=]","",perl=TRUE,text3)
-    
-    ## check if IGNORE or ACCEPT are found. If both found, it is an error. 
-    any.accepts <- any(grepl("ACCEPT",text3))
-    any.ignores <- any(grepl("IGN",text3))
-    ## if no filters found, just return data as is
-    if(!any.accepts && !any.ignores && length(conds.sc)==0) return(data)
-    if(any.accepts&&any.ignores) stop("IGNORE and ACCEPT are not allowed together according to Nonmem documentation.")
-    
-    if(any.ignores) {
-        type.condition <- "IGN"
-    } else {
-        type.condition <- "ACCEPT"
+    if(missing(filters)||is.null(filters)){
+        if(missing(lines)) lines <- NULL
+        if(missing(file)) file <- NULL
+### this is assuming there is only one file, or that lines contains only one control stream.    
+        lines <- getLines(file=file,lines=lines)
+
+        filters <- NMreadFilters(lines=lines,
+                                 filters.only=TRUE,as.fun="data.table")
     }
-    
-    
-### expression-style ones
-    ## this is not entirely correct.
-### 1. A comma-separated list of expressions can be inside the ()s.
-    ## 2. Expressions can be nested.
-### 1. is handled below, 2 should be detected and give an error - interpretation not implemented.
-    conds.expr <-
-        regmatches(text3, gregexpr(paste0(type.condition," *=* *\\([^)]*\\)"),text3))
-    conds.expr <- do.call(c,conds.expr)
 
-    
     
     
     ## translating single-charaters
     name.c1 <- colnames(data)[1]
-    scs <- sub(paste0("IGN"," *=* *(.+)"),"\\1",conds.sc)
+    scs <- sub(paste0("IGN"," *=* *(.+)"),"\\1",filters[class=="single-char",cond])
     scs.all <- scs
     expressions.sc <- c()
     if(length(scs)&&grepl("@",scs)) {
@@ -122,10 +74,6 @@ NMapplyFilters <- function(data,file,text,lines,invert=FALSE,as.fun,quiet) {
         scs <- scs[!grepl("@",scs)]
     }
 
-    ##    regstring <- "^[a-zA-Z]"
-### other single character ignores can be any character - except for space
-    ##    regstring <- "[[:graph:]]"
-    ##  regstring <- "([[:punct:]]|[[:alpha:]])"
     regstring <- "[[:punct:]]|[[:alpha:]]"
 
     
@@ -139,17 +87,14 @@ NMapplyFilters <- function(data,file,text,lines,invert=FALSE,as.fun,quiet) {
     }
     
     if(length(scs)) stop(paste0("Not all single-character IGNORE statements were translated. This is left: ",scs))
-    
-    ## translating expression-style ones
-    conds.list <- strsplit(
-        gsub(paste0(type.condition," *=* *\\((.+)\\)"),"\\1",conds.expr)
-       ,split=",")
-    conds.char <- do.call(c,conds.list)
 
+
+    ## expressions.list is not a list, it's a char vector with the filter "expressions", as R code
     
+    ## translating expression-style ones - i.e. not single-char
     expressions.list <- c(paste0(
         NMcode2R(
-            conds.char
+            filters[class=="var-compare",cond]
         )
     ))
 
@@ -159,30 +104,52 @@ NMapplyFilters <- function(data,file,text,lines,invert=FALSE,as.fun,quiet) {
     expressions.list <- sub("([[:alpha:]]+) +([[:alnum:]]+)","\\1==\\2",expressions.list)
 
     vars.cond <- sub("([[:alnum:]])[^[:alnum:]]+.*","\\1",expressions.list)
-    
+
+    copy.data <- FALSE
+    data.sc <- data
     if(length(vars.cond)){
         missings <- listMissings(data,cols=unique(vars.cond),quiet=TRUE,as.fun="data.table")
         if(!is.null(missings)&&nrow(missings)>0){
-            warning(paste("Missing values found in columns used for ACCEPT/IGNORE statements. This is not supported. If at all possible, please use a unique row identifier to merge by and/or make sure values are not missing in these colums.\n",
+            message(paste("Missing values found in columns used for ACCEPT/IGNORE statements. Please double-check dimensions of resulting data set. If at all possible, consider using a unique row identifier to merge by and/or make sure values are not missing in these colums.\n",
                           paste(capture.output(
                               print(
                                   missings[,.N,by=.(variable,value)]
-                                    )
+                              )
                           ),collapse="\n")))
-            
+            ## missings
+            vars.missing <- missings[,as.character(unique(variable))]
+### numeric variables
+            if(length(vars.missing)){
+                copy.data <- TRUE
+                data.sc <- copy(data)
+                col.row.sc <- tmpcol(data=data.sc,base="row.sc")
+                data.sc[,(col.row.sc):=.I]
+                for(var in vars.missing){
+                    if(is.numeric(data.sc[,get(var)])){
+                        data.sc[is.na(get(var)),(var):=0]
+                    } else {
+                        data.sc[is.na(get(var)),(var):=""]
+                    }
+                }
+            }
         }
     }
     
+    ## cond.combine affects expression filters, not sc
     cond.combine <- "|"
     ## remember to negate everything if the type is ignore
     
+    type.condition <- ifelse(all(filters[,type=="IGN"]),"IGN","ACCEPT")
     if(type.condition=="IGN") {
         if(length(expressions.list)){
+            ## expressions.list <- paste0("!(",expressions.list,")")
             expressions.list <- paste0("!",expressions.list)
         }
         cond.combine <- "&"
     }
     
+    
+
     if(length(expressions.sc)) {
         conditions.all.sc <- paste0(expressions.sc,collapse="&")
     } else {
@@ -196,32 +163,67 @@ NMapplyFilters <- function(data,file,text,lines,invert=FALSE,as.fun,quiet) {
     }
 
     
+    
     if(invert) {
-        
+
         conditions.all.sc <- paste("!(",conditions.all.sc,")")
-        if(!is.null(expressions.all)){
-            expressions.all <- paste("!",expressions.all)
-            data <- as.data.table(data)[eval(parse(text=paste(conditions.all.sc,"|",expressions.all)))]
-        } else {
-            data <- as.data.table(data)[eval(parse(text=conditions.all.sc))]
-        }
+        expressions.all <- paste("!",expressions.all)
         
+        ## conditions.all.sc <- paste("!(",conditions.all.sc,")")
+        ## if(!is.null(expressions.all)){
+        ##     expressions.all <- paste("!",expressions.all)
+        ##     data <- as.data.table(data)[eval(parse(text=paste(conditions.all.sc,"|",expressions.all)))]
+        ## } else {
+        ##     data <- as.data.table(data)[eval(parse(text=conditions.all.sc))]
+        ## }
+        
+    } ##else {
+    ## apply sc first
+    
+    
+    data.sc <- as.data.table(data.sc)[eval(parse(text=conditions.all.sc))]
+    
+    ## then lists
+    if(!is.null(expressions.all)){
+        data.sc <- as.data.table(data.sc)[eval(parse(text=expressions.all))]
+    }
+    ## }
+    if(copy.data){
+        
+        data <- data[data.sc[,get(col.row.sc)]]
     } else {
-        ## apply sc first
-        data <- as.data.table(data)[eval(parse(text=conditions.all.sc))]
-        
-        ## then lists
-        if(!is.null(expressions.all)){
-            data <- as.data.table(data)[eval(parse(text=expressions.all))]
-        }
+        data <- data.sc
+    }
+
+    
+    data.meta.filters <- NULL
+    ## conds.sc <- NULL
+    if(nrow(filters[class=="single-char"])){
+        conds.sc <- paste(filters[class=="single-char",paste0(type,"=",cond)],collapse=", ")
+        data.meta.filters <- data.table(
+            nonmem=c(conds.sc),
+            R=c(conditions.all.sc)
+        )   
+    }
+    ## conds.text <- NULL
+    if(nrow(filters[class=="var-compare"])){
+        conds.text <- paste0(type.condition,": ",paste(filters[class=="var-compare",cond],collapse=", "))
+        data.meta.filters <- rbind(data.meta.filters,
+                                   data.table(
+                                       nonmem=c(conds.text),
+                                       R=c(paste(expressions.all,collapse=", "))
+                                   )
+                                   )
     }
     
-    conds.text <- paste0(type.condition,": ",paste(conds.char,collapse=", "))
-    data.meta.filters <- data.table(
-        nonmem=c(conds.sc,
-                 conds.text),
-        R=c(conditions.all.sc,paste(expressions.all,collapse=", "))
-    )
+    ## data.meta.filters <- data.table(
+    ##     nonmem=c(
+    ##         ## conditions.all.sc
+    ##         conds.sc
+    ##        ,
+    ##         conds.text),
+    ##     R=c(conditions.all.sc,paste(expressions.all,collapse=", "))
+    ## )
     if(nrow(data.meta.filters)){
         data.meta$input.filters <- data.meta.filters
     }

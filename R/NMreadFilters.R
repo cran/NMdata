@@ -11,7 +11,7 @@ NMreadFilters <- function(file,lines,filters.only=TRUE,as.fun) {
 #### Section start: Dummy variables, only not to get NOTE's in pacakge checks ####
     
     . <- NULL
-    data <- NULL
+    ## data <- NULL
     variable <- NULL
     value <- NULL
     
@@ -22,10 +22,7 @@ NMreadFilters <- function(file,lines,filters.only=TRUE,as.fun) {
     
     if(missing(lines)) lines <- NULL
     if(missing(file)) file <- NULL
-### this is assuming there is only one file, or that lines contains only one control stream.
-
-    
-    
+### this is assuming there is only one file, or that lines contains only one control stream.    
     lines <- getLines(file=file,lines=lines)
 
     ## If these are not NULL, it can make trouble in NMreadSection.
@@ -51,17 +48,20 @@ NMreadFilters <- function(file,lines,filters.only=TRUE,as.fun) {
     ## ^(.* )* : if anything before IGN, there must be a space in between
     ## conds.sc <- regmatches(text3, gregexpr("^(.* )*(?:IGN) *=* *[^ (+=]",text3))
     conds.sc <- regmatches(text3, gregexpr("(?<![[:alnum:]])IGN *=* *[^ (+=]",text3,perl=T))
-    conds.sc
     conds.sc <- do.call(c,conds.sc)
     
 ### getting rid of single char conditions
     text3 <- gsub("(?<![[:alnum:]])IGN *=* *[^ (+=]","",perl=TRUE,text3)
     
+#### any.accepts, any.ignores, and type.condition only relate to expression-type conditions. ACCEPT can be combined with single-character ignore.
     ## check if IGNORE or ACCEPT are found. If both found, it is an error. 
     any.accepts <- any(grepl("ACCEPT",text3))
-    any.ignores <- any(grepl("IGN",text3))
+    any.ignores <- any(grepl("IGN",text3)) ##||length(conds.sc)
+#### this looks wrong. Why return data if nothing found? Seems like
+#### empty set of filters should be returned.
     ## if no filters found, just return data as is
-    if(!any.accepts && !any.ignores && length(conds.sc)==0) return(data)
+    ## if(!any.accepts && !any.ignores && length(conds.sc)==0) return(data)
+
     if(any.accepts&&any.ignores) stop("IGNORE and ACCEPT are not allowed together according to Nonmem documentation.")
     
     if(any.ignores) {
@@ -84,27 +84,9 @@ NMreadFilters <- function(file,lines,filters.only=TRUE,as.fun) {
     ## name.c1 <- colnames(data)[1]
     scs <- sub(paste0("IGN"," *=* *(.+)"),"\\1",conds.sc)
     scs.all <- scs
-    ## expressions.sc <- c()
-    ## if(length(scs)&&grepl("@",scs)) {
-### NM manual: @ means first non-blank is a-z or A-Z.
-    ##     expressions.sc <- c(expressions.sc,paste0("!grepl(\"^ *[A-Za-z]\",",name.c1,")"))
-    ##     scs <- scs[!grepl("@",scs)]
-    ## }
-    
-    
-### other single character ignores can be any character - except for space
-    ## regstring <- "[[:punct:]]|[[:alpha:]]"
-
-    ## if(length(scs)&&any(grepl(regstring,scs))) {
-    ##     scs2 <- regmatches(scs,regexpr(regstring,scs))
-    ##     expressions.sc <- c(expressions.sc,paste0("!grepl('^[",scs2,"]',`",name.c1,"`)"))
-    ##     scs <- scs[!grepl(regstring,scs)]
-    ## }
-
-    ## if(length(scs)) stop(paste0("Not all single-character IGNORE statements were translated. This is left: ",scs))
 
     
-    ## translating expression-style ones
+    ## translating expression-style ones - they can be separated by commas
     conds.list <- strsplit(
         gsub(paste0(type.condition," *=* *\\((.+)\\)"),"\\1",conds.expr)
        ,split=",")
@@ -116,7 +98,7 @@ NMreadFilters <- function(file,lines,filters.only=TRUE,as.fun) {
         dt.filters <- rbind(
             dt.filters
            ,
-            data.table(type=type.condition,class="single-char",cond=scs.all)
+            data.table(type="IGN",class="single-char",cond=scs.all)
         )
     }
     if(length(conds.char)){

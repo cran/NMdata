@@ -33,7 +33,7 @@
 ##'     on V, then we know that `OMEGA(2,1)` is covariance of (BSV on)
 ##'     CL and V.
 ##' @param spaces.split Is a blank in `fields` to be treated as a
-##'     field seperator? Default is not to (i.e. neglect spaces in
+##'     field separator? Default is not to (i.e. neglect spaces in
 ##'     `fields`).
 ##' @param use.idx The default method is to automatically identify
 ##'     element numbering (`i` for THETAs, `i` and `j` for OMEGAs and
@@ -49,9 +49,15 @@
 ##'     such a counter from the control stream. When using a counter
 ##'     on OMEGA and SIGMA, off-diagonal elements MUST be denoted by
 ##'     `i-j`, like `2-1` for OMEGA(2,1). See `field.idx` too.
+##' @param add.init If `TRUE` (default), a field will automatically be
+##'     added to the formats for the initial value string. This will
+##'     be called "initstr". It will only happen if the first field is
+##'     not called either "initstr" or "init". The only situation
+##'     where one would use `add.init=FALSE` is if a different name
+##'     for the initial value field is already included in formats.
 ##' @param field.idx If an index field is manually provided in the
 ##'     control stream comments, define the name of that field in
-##'     `format` and tell `NMreadParsTab()` to use this idx to
+##'     `format` and tell `NMreadParsText()` to use this idx to
 ##'     organize especially OMEGA and SIGMA elements by pointing to it
 ##'     with `field.idx`. The default is to look for a variable called
 ##'     `idx`. If the index has values like 1-2 on an OMEGA or SIGMA
@@ -131,6 +137,7 @@ NMreadParsText <- function(file,lines,format,
                            unique.matches=TRUE,
                            field.idx="idx",
                            use.idx=FALSE,
+                           add.init=TRUE,
                            modelname,
                            col.model,
                            as.fun,
@@ -229,18 +236,55 @@ NMreadParsText <- function(file,lines,format,
         format.sigma <- fields.sigma
     }
 
-    if(is.null(format)){
-        format <- "%init;%idx;%symbol;%label;%unit"
-    }
+
+    
+    ## if not provided in arguments, read formats from control stream
+
+
     if(missing(format.omega)) format.omega <- NULL
     if(is.null(format.omega)) format.omega <- format
     if(missing(format.sigma)) format.sigma <- NULL
     if(is.null(format.sigma)) format.sigma <- format.omega
 
     
-    if(is.function(format)) format <- format(lines)
-    if(is.function(format.omega)) format.omega <- format.omega(lines)
-    if(is.function(format.sigma)) format.sigma <- format.sigma(lines)
+    formats.res <- list(
+        format=format,
+        format.omega=format.omega,
+        format.sigma=format.sigma
+    )
+    formats.res <- formats.res[!sapply(formats.res,is.null)]
+
+    
+    
+#### if not provided in arguments, read formats from control stream
+### todo use function to combine two lists into one.
+    formats.ctl <- NMextractFormats(ctl=
+                                        as.NMctl(lines,lines=TRUE)
+                                    )
+    formats.res <- modifyList(formats.ctl,formats.res)
+
+    
+    
+    
+    if(is.null(formats.res$format)){
+        formats.res$format <- "%initstr;%idx;%symbol;%label;%unit"
+    }
+    
+    formats.res <- lapply(formats.res,function(x){
+        if(is.function(x)) x <- x(lines)
+        x
+    })
+
+    
+    ##if(missing(formats.res$format.omega)) formats.res$format.omega <- NULL
+    if(is.null(formats.res$format.omega)) formats.res$format.omega <- formats.res$format
+    ## if(missing(formats.res$format.sigma)) formats.res$format.sigma <- NULL
+    if(is.null(formats.res$format.sigma)) formats.res$format.sigma <- formats.res$format.omega
+
+    
+    ## if(is.function(format)) format <- format(lines)
+    ## if(is.function(format.omega)) format.omega <- format.omega(lines)
+    ## if(is.function(format.sigma)) format.sigma <- format.sigma(lines)
 
     
     ## function to extact however many format are available in a commented
@@ -263,6 +307,7 @@ NMreadParsText <- function(file,lines,format,
         items <- c()
         
         for(I in 1:nsplitters.x){
+            
             spl <- format$splitters[I]
             spl.raw <- format$splitters.raw[I]
             ## this.item.all <- sub(sprintf("([^%s]*)%s.*",
@@ -383,18 +428,31 @@ NMreadParsText <- function(file,lines,format,
         omegas
     }
 
+
     
     
     rm.idx <- TRUE
-    thetas <- get.theta.comments(lines=lines,section="THETA",format=format,
+    if(add.init){
+        formats.res <- lapply(formats.res,function(format){
+            fields <- splitFields(format,spaces.split=spaces.split)
+
+            if(!fields$fields[1]%in%c("init","initstr")){
+                
+                format <- paste0("%initstr;",format)
+            }
+            format
+        })
+    }
+    
+    thetas <- get.theta.comments(lines=lines,section="THETA",format=formats.res$format,
                                  use.theta.idx=use.theta.idx)
     
     
 #### get.omega.comments must return line numbers
     ## why is idx there?
     
-    omegas <- get.omega.comments(lines=lines,section="omega",format=format.omega)
-    sigmas <- get.omega.comments(lines=lines,section="sigma",format=format.sigma)
+    omegas <- get.omega.comments(lines=lines,section="omega",format=formats.res$format.omega)
+    sigmas <- get.omega.comments(lines=lines,section="sigma",format=formats.res$format.sigma)
 
     auto.idx <- setdiff(c("THETA","OMEGA","SIGMA"),use.idx)
     
@@ -474,6 +532,8 @@ NMreadParsText <- function(file,lines,format,
     }
 
     if("linenum" %in% colnames(pt1)) pt1[,linenum:=NULL]
+
+    pt1 <- addParType(pt1)
     
     cols.last <- intersect(c("par.type","i","j","col.idx","parameter",col.model),colnames(pt1))
     setcolorder(pt1,c(setdiff(colnames(pt1),cols.last),cols.last))
@@ -495,7 +555,7 @@ escape.charclass <- function(x) {
 ##' @keywords internal
 splitFields <- function(format,spaces.split=FALSE){
 
-
+    
     
     ## number of fields defined in format
     nfields.string <- nchar(gsub("[^%]","",format))

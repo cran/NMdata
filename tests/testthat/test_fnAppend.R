@@ -65,5 +65,36 @@ test_that("skip directory double dots",{
              fnAppend("egef","hmm",allow.noext = TRUE))
 
     expect_equal_to_reference(res,fileRef)
-             
+    
+})
+
+
+test_that("prepend basic",{
+
+    ## fileRef <- "testReference/fnAppend_1.rds"
+
+    ## numeric    
+    res1 <- fnAppend("few.csv",1,position="prepend")
+
+    expect_equal(res1,"1_few.csv")    
+})
+
+
+test_that("appending to strings like geee..",{
+
+### there was an issue appending to strings like "geee.."
+    fileRef <- "testReference/fnAppend_04.rds"
+
+    res1 <- list(
+        fnAppend("few.","ggg",allow.noext=T)
+       ,fnAppend("few..","ggg",allow.noext=T)
+       ,fnAppend("hey/few..","ggg",allow.noext=T)
+       ,fnAppend("hey/few..mod","ggg",allow.noext=T)
+       ,fnAppend("hey/few...mod","ggg",allow.noext=T)
+       ,fnAppend("few...mod","ggg",allow.noext=T)
+       ,fnAppend("xgxr021_NMreadSim_path...mod","ggg",allow.noext=T)
+       ,fnAppend("xgxr021_NMreadSim_path...mod","ggg",allow.noext=F)
+    )
+    
+    expect_equal_to_reference(res1,fileRef)
 })

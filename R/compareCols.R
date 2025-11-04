@@ -23,9 +23,9 @@
 ##'     greater than one. If only one data set is supplied, the full
 ##'     list of columns is shown by default.
 ##' @param fun.class the function that will be run on each column to
-##'     check for differences. base::class is default. Notice that the
-##'     alternative `base::typeof` is different in certain ways. For
-##'     instance, `typeof` will not report a difference on numeric vs
+##'     check for differences. \code{base::class} is default. Notice that the
+##'     alternative \code{base::typeof} is different in certain ways. For
+##'     instance, \code{typeof} will not report a difference on numeric vs
 ##'     difftime. You could basically submit any function that takes a
 ##'     vector and returns a single value.
 ##' @param cols.wanted Columns of special interest. These will always
@@ -194,17 +194,6 @@ compareCols <- function(...,list.data,keep.names=TRUE,test.equal=FALSE,diff.only
         } else {
             if(diff.only){
                 message("\nColumns that differ:")
-                ## message(print(as.fun(dt.cols)))
-
-                ## message(":::")
-                
-                ## message(print(as.fun(dt.cols)))
-                ## message(print(dt.cols))
-                ## message(print.table(dt.cols))
-                ## message(dt.cols)
-                ## message("[[[[[[")
-                ## message(paste(capture.output(print(as.fun(dt.cols))),collapse="\n"))
-                ## print(dt.cols)
                 message_dt(dt.cols)
                 message()
                 if(nrow(dt.cols.full[nu==1&n==ndots])){

@@ -14,6 +14,7 @@ NMreadParsText(
   unique.matches = TRUE,
   field.idx = "idx",
   use.idx = FALSE,
+  add.init = TRUE,
   modelname,
   col.model,
   as.fun,
@@ -42,7 +43,7 @@ section. Default is to reuse `format`.}
 section. Default is to reuse `format.omega`.}
 
 \item{spaces.split}{Is a blank in `fields` to be treated as a
-field seperator? Default is not to (i.e. neglect spaces in
+field separator? Default is not to (i.e. neglect spaces in
 `fields`).}
 
 \item{unique.matches}{If TRUE, each line in the control stream is
@@ -61,7 +62,7 @@ CL and V.}
 
 \item{field.idx}{If an index field is manually provided in the
 control stream comments, define the name of that field in
-`format` and tell `NMreadParsTab()` to use this idx to
+`format` and tell `NMreadParsText()` to use this idx to
 organize especially OMEGA and SIGMA elements by pointing to it
 with `field.idx`. The default is to look for a variable called
 `idx`. If the index has values like 1-2 on an OMEGA or SIGMA
@@ -82,6 +83,13 @@ counter in all sections, and a character vector like
 such a counter from the control stream. When using a counter
 on OMEGA and SIGMA, off-diagonal elements MUST be denoted by
 `i-j`, like `2-1` for OMEGA(2,1). See `field.idx` too.}
+
+\item{add.init}{If `TRUE` (default), a field will automatically be
+added to the formats for the initial value string. This will
+be called "initstr". It will only happen if the first field is
+not called either "initstr" or "init". The only situation
+where one would use `add.init=FALSE` is if a different name
+for the initial value field is already included in formats.}
 
 \item{modelname}{See ?NMscanData}
 

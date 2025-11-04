@@ -78,7 +78,7 @@ just need a control stream path to run.
     parameter estimates with uncertainties and everything else provided
     in the ext file, iterations, objective function value and
     termination status  
--   `NMreadParsText()` Very flexible processer of comments in control
+-   `NMreadParsText()` Very flexible processor of comments in control
     stream parameter sections. As long as the comments provide
     consistent parameter information in almost any format,
     `NMreadParsText()` can turn it into a table.  
@@ -162,7 +162,7 @@ reached CRAN, installing from Github is easy too.
 install.packages("NMdata")
 
 ## Option 2: Install explicitly from CRAN
-install.packages("NMdata",repos="https://cloud.r-project.org")
+install.packages("NMdata",repos="https://cran.r-project.org")
 
 ## Option 3: Install from github
 library(remotes)

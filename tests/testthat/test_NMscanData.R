@@ -44,7 +44,8 @@ test_that("basic",{
     file.lst <- "testData/nonmem/xgxr001.lst"
     ## NMreadSection(NMdata_filepath("examples/nonmem/run001.lst"),section="DATA")
 
-    res <- NMscanData(file=file.lst, quiet=T, order.columns = F, merge.by.row=FALSE, check.time = FALSE)
+    res <- NMscanData(file=file.lst, quiet=T, order.columns = F,
+                      merge.by.row=FALSE, check.time = FALSE)
     ## res2 <- NMscanData(file=file.lst, quiet=T, order.columns = F, merge.by.row=FALSE, check.time = FALSE,rep.count=T)
     ## dim(res)
 
@@ -54,6 +55,23 @@ test_that("basic",{
     ## without meta
     ## expect_equal(unNMdata(res),unNMdata(readRDS(fileRef)))
     ## data.table(attributes(readRDS(fileRef))$meta$variables$variable,attributes(res1)$meta$variables$variable)
+
+    if(FALSE){
+        ref <- readRDS(fileRef)
+
+        NMinfo(ref)$input.colnames
+        NMinfo(res)$input.colnames
+
+        filters.ref <- NMinfo(ref)$input.filters
+        filters.res <- NMinfo(res)$input.filters
+
+        filters.ref
+        filters.res
+        filters.ref$R
+        filters.res$R
+        
+        res
+    }
 })
 
 
@@ -68,7 +86,8 @@ test_that("Modifications to column names in $INPUT",{
     res1 <- NMscanData(file=file.lst, check.time = FALSE, merge.by.row=FALSE, quiet=T)
 
     res <- list(
-        NMinfo(res1,"input.colnames"),
+        NMinfo(res1,"input.colnames")
+       ,
         NMinfo(res1,"columns"),
         colnames(res1)
     )
@@ -76,9 +95,15 @@ test_that("Modifications to column names in $INPUT",{
     expect_equal_to_reference(res,fileRef,version=2)
     ## without meta
     ## expect_equal(unNMdata(res),unNMdata(readRDS(fileRef)))
+    if(F){
+        ref <- readRDS(fileRef)
+ref[[1]]
+        res[[1]]
+    }
 
 })
 
+### BBW seems to be translated independently of translate.input
 test_that("No translation of column names in $INPUT",{
 
     fileRef <- "testReference/NMscanData_02b.rds"
@@ -91,6 +116,13 @@ test_that("No translation of column names in $INPUT",{
 
     dt.cnames <- data.table(colnames(res1),colnames(res2))
     expect_equal_to_reference(dt.cnames,fileRef,version=2)
+
+    if(F){
+        ref <- readRDS(fileRef)
+        ref
+        dt.cnames
+    }
+
 
 })
 
@@ -587,10 +619,28 @@ test_that("Duplicate columns in input data",{
     res <- expect_warning(
         NMscanData(file=file.lst,merge.by.row=FALSE,check.time = FALSE, quiet=T)
     )
+    ## res <- NMscanData(file=file.lst,merge.by.row=FALSE,check.time = FALSE, quiet=T)
+    
     fix.time(res)
     ## names(res$row)
     
     expect_equal_to_reference(res,fileRef,version=2)
+
+    if(F){
+        ref <- readRDS(fileRef)
+        dims(res,ref)
+        NMinfo(ref)
+        NMinfo(res)
+
+        NMinfo(ref,"input.colnames")
+        NMinfo(res,"input.colnames")
+
+        NMinfo(ref,"details")
+        NMinfo(res,"details")
+
+        
+    }
+
 })
 
 
@@ -719,6 +769,12 @@ test_that("A filter without operator",{
     expect_equal_to_reference(
         res1,fileRef,version=2
     )
+
+    if(FALSE){
+        ref <- readRDS(fileRef)
+        NMinfo(ref)$input.filters
+        NMinfo(res1)$input.filters
+    }
     
 })
 
@@ -777,6 +833,11 @@ test_that("redundant output",{
     )
 
     ## inp1 <- NMscanInput(file=file.lst)
+    if(F){
+        ref <- readRDS(fileRef)
+        NMinfo(ref,"input.filters")
+        NMinfo(res1,"input.filters")
+    }
     
 }
 )
@@ -822,6 +883,7 @@ test_that("$INPUT copy",{
     
     file.lst.1 <- "testData/nonmem/xgxr022.lst"
     res.1 <- NMscanData(file.lst.1, quiet=T)
+    ## res.1 <- NMscanData(file.lst.1, quiet=T,translate.input = T)
 
     ## NMinfo(res,"input.colname")
     NMinfo(res.1,"input.colnames")
@@ -831,12 +893,15 @@ test_that("$INPUT copy",{
     res.2 <- NMscanData(file.lst.2, quiet=T)
 
     expect_equal(ncol(res.1)-ncol(res.2),1)
-    expect_equal(setdiff(colnames(res.1),colnames(res.2)),c("COMP","EFF0"))
+    expect_equal(setdiff(colnames(res.1),colnames(res.2)),c("EFF0","COMP"))
+    expect_equal(
+        setdiff(colnames(res.2),colnames(res.1))
+                ,c("eff0"))
 
     cols.1 <- NMinfo(res.1,"columns")
     cols.2 <- NMinfo(res.2,"columns")
 
-    expect_equal(setdiff(cols.1$variable,cols.2$variable),c("COMP","EFF0"))
+    expect_equal(setdiff(cols.1$variable,cols.2$variable),c("EFF0","COMP"))
     expect_equal(setdiff(cols.2$variable,cols.1$variable),c("eff0"))
 
 })
@@ -876,6 +941,8 @@ test_that("Two firstonly, one full-length",{
         dims(ref,res)
         NMinfo(ref)$tables
         NMinfo(res)$tables
+        NMinfo(ref)$input.colnames
+        NMinfo(res)$input.colnames
 
     }
 })
@@ -894,6 +961,14 @@ test_that("Two firstonly, one full-length with col.nmrep",{
     
     expect_equal_to_reference(res,fileRef,version=2)
     
+    if(F){
+        ref <- readRDS(fileRef)
+
+        NMinfo(ref)$input.colnames
+        NMinfo(res)$input.colnames
+
+    }
+
 })
 
 
@@ -1010,6 +1085,7 @@ test_that("csv vs rds vs fst",{
 })
 
 test_that("inside lappy",{
+    
 ### there are issues running NMdata functions in lapply - probably due to getArgs
     lsts <- c(    "testData/nonmem/xgxr014.lst",    "testData/nonmem/xgxr032.lst")
 
@@ -1031,3 +1107,26 @@ test_that("inside lappy",{
 })
 
 
+
+#### 
+## res <- NMscanData("testData/nonmem/xgxr054.mod") IGNORE=(CWNA.LE.0)
+
+test_that("NMtran seems to treat NA as zero",{
+
+    fileRef <- "testReference/NMscanData_33.rds"
+    
+    res1 <- expect_message(NMscanData("testData/nonmem/xgxr054.mod",merge.by.row = F))
+    NMinfo(res1,"input.filters")
+    ## IGNORE=(CWNA.LT.0)
+    res2 <- expect_message(NMscanData("testData/nonmem/xgxr055.mod",merge.by.row = F))
+    NMinfo(res2,"input.filters")
+
+    
+    
+    res <- dims(
+        res1,res2
+    )
+
+    expect_equal_to_reference(res,fileRef,version=2)
+
+})
