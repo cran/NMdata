@@ -1,3 +1,37 @@
+# NMdata 0.2.3
+
+## New Features
+
+* New function, `mergeCoal()` is a coalesce-like merge
+  function. `mergeCoal(x,y,...)` overwrites values in `x` with those in `y`, if
+  not `NA`. This is a flexible way to edit multiple values in a `data.frame`
+  through a single interface.
+
+* `NMreadParsText()` supports formats including periods (.). There may still be
+  some special characters that are not supported.
+
+* `NMrelate()` supports models that don't have all of `$THETA`,
+  `$OMEGA`, and `$SIGMA` sections.
+
+## Bugfixes
+* `NMcanInput` (and downstream functions like `NMscanData` did not copy Nonmem
+  columns (`$INPUT` elements like `DV=OBS`) correctly. It would not name the
+  secondary column as expected (which is, if name it `OBS` if not used in other Nonmem
+  column names, otherwise `OBSX` where `X` is an integer making `OBSX` a unique
+  column name). Fixed.
+
+* `NMextractFormats()` was failing to capture format definitions
+  "format.omega" and "format.sigma" in control streams. Format
+  definitions including tabulator characters would also create
+  problems. A format definition is a comment documenting the format,
+  like "format: %idx - %symbol". Fixed.
+
+* `NMrelate()` did not consider the `sections` argument. It does now
+  but with an important limitation: it can only be of lenght one. This
+  is of minor importance since it is only needed in the special case
+  that a parameter gets assigned to different variable names in
+  different sections. Normally, leaving out the argument is fine. 
+
 # NMdata 0.2.2
 
 ## New Features
@@ -28,8 +62,8 @@
 ``` 
 ;; format: %idx - %symbol [%unit]; %trans 
 $THETA (0, 4.4) ; 1 - CL [L/h] ; none 
-;; format.omega:
-%symbol ; %trans $OMEGA 0.15 ; IIV.KA ; lognormal 
+;; format.omega: %symbol ; %trans 
+$OMEGA 0.15 ; IIV.KA ; lognormal 
 ``` 
 
   The first occurrance of each of `format`, `format.omega`, and
