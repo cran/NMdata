@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="ASCII"?>
+<!DOCTYPE nm:output SYSTEM "output.dtd">
+<nm:output
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://namespaces.oreilly.com/xmlnut/address output.xsd"
+xmlns:nm="http://namespaces.oreilly.com/xmlnut/address"
+>
+<nm:start_datetime>2022-10-24T17:42:13.174</nm:start_datetime>
+<nm:control_stream><![CDATA[
+$PROBLEM    PK. Only a first-only
+;@ Variables 17/20 @;
+$INPUT ID TIME EVID CMT AMT DV MDV
+
+$DATA ./NMsimData_xgxr023_testsim1.csv
+IGN=@
+
+$SUBROUTINE ADVAN4 TRANS4
+$PK
+KA=THETA(1)*EXP(ETA(1))
+V2=THETA(2)*EXP(ETA(2))
+CL=THETA(3)*EXP(ETA(3))
+V3=THETA(4)*EXP(ETA(4))
+Q=THETA(5)*EXP(ETA(5))
+
+$ERROR
+  IPRED=F
+  IRES=DV-IPRED
+
+  IF (IPRED.GT.1) THEN
+    W = SQRT(IPRED**2*SIGMA(1,1)**2 + SIGMA(2,2)**2)
+  ELSE
+    W=1
+  ENDIF
+
+  IWRES=IRES/W
+  Y=F+F*ERR(1)+ERR(2)
+
+;-----------------------INITIAL ESTIMATES---------------------------------
+$THETA  (0,0.181156) ; POPKA
+$THETA  (0,0.042) ; POPCL
+$THETA  (0,0.724699) ; POPV2
+$THETA  (0,0.178351) ; POPV3
+$THETA  (0,2269600) ; POPQ
+$OMEGA  0.209987
+$OMEGA  0.121444
+$OMEGA  0.000169787
+$OMEGA  0  FIX
+$OMEGA  0  FIX
+$SIGMA  0.105974
+$SIGMA  0.00139307
+$SIMULATION ONLYSIM (343108)
+
+$TABLE      ID CL FIRSTONLY FORMAT=,1PE15.8 FILE=xgxr023_testsim1.tab
+NOPRINT NOAPPEND ONEHEADER
+
+]]></nm:control_stream>
+<nm:nmtran><![CDATA[
+
+ WARNINGS AND ERRORS (IF ANY) FOR PROBLEM    1
+
+ (WARNING  2) NM-TRAN INFERS THAT THE DATA ARE POPULATION.
+
+ (WARNING  79) SIGMA IS USED ON THE RIGHT. WITH A SUBSEQUENT RUN, IF AN
+ INITIAL ESTIMATE OF A DIAGONAL BLOCK OF SIGMA IS TO BE COMPUTED BY
+ NONMEM, THAT BLOCK WILL BE SET TO AN IDENTITY MATRIX DURING THAT
+ COMPUTATION. THIS COULD LEAD TO AN ARITHMETIC EXCEPTION.*
+
+ * THE MAXIMUM NUMBER OF WARNINGS OF ONE OR MORE TYPES WAS REACHED.
+ IT IS POSSIBLE THAT SOME WARNING MESSAGES WERE SUPPRESSED.
+]]></nm:nmtran>
+<nm:nonmem nm:version='7.4.4'>
+<nm:license_information><![CDATA[
+License Registered to: Vertex
+Expiration Date:    14 JAN 2023
+Current Date:       24 OCT 2022
+Days until program expires :  85
+]]></nm:license_information>
+<nm:program_information><![CDATA[
+1NONLINEAR MIXED EFFECTS MODEL PROGRAM (NONMEM) VERSION 7.4.4
+ ORIGINALLY DEVELOPED BY STUART BEAL, LEWIS SHEINER, AND ALISON BOECKMANN
+ CURRENT DEVELOPERS ARE ROBERT BAUER, ICON DEVELOPMENT SOLUTIONS,
+ AND ALISON BOECKMANN. IMPLEMENTATION, EFFICIENCY, AND STANDARDIZATION
+ PERFORMED BY NOUS INFOSYSTEMS.
+]]></nm:program_information>
+<nm:theta_lb>
+<nm:val nm:name='1'>0.0000000000000000</nm:val>
+<nm:val nm:name='2'>0.0000000000000000</nm:val>
+<nm:val nm:name='3'>0.0000000000000000</nm:val>
+<nm:val nm:name='4'>0.0000000000000000</nm:val>
+<nm:val nm:name='5'>0.0000000000000000</nm:val>
+</nm:theta_lb>
+<nm:theta_in>
+<nm:val nm:name='1'>0.18115600000000001</nm:val>
+<nm:val nm:name='2'>4.2000000000000003E-002</nm:val>
+<nm:val nm:name='3'>0.72469899999999998</nm:val>
+<nm:val nm:name='4'>0.17835100000000001</nm:val>
+<nm:val nm:name='5'>2269600.0000000000</nm:val>
+</nm:theta_in>
+<nm:theta_ub>
+<nm:val nm:name='1'>1000000.0000000000</nm:val>
+<nm:val nm:name='2'>1000000.0000000000</nm:val>
+<nm:val nm:name='3'>1000000.0000000000</nm:val>
+<nm:val nm:name='4'>1000000.0000000000</nm:val>
+<nm:val nm:name='5'>1000000.0000000000</nm:val>
+</nm:theta_ub>
+<nm:problem_information><![CDATA[
+
+ PROBLEM NO.:         1
+ PK. Only a first-only
+0DATA CHECKOUT RUN:              NO
+ DATA SET LOCATED ON UNIT NO.:    2
+ THIS UNIT TO BE REWOUND:        NO
+ NO. OF DATA RECS IN DATA SET:       25
+ NO. OF DATA ITEMS IN DATA SET:   7
+ ID DATA ITEM IS DATA ITEM NO.:   1
+ DEP VARIABLE IS DATA ITEM NO.:   6
+ MDV DATA ITEM IS DATA ITEM NO.:  7
+0INDICES PASSED TO SUBROUTINE PRED:
+   3   2   5   0   0   0   4   0   0   0   0
+0LABELS FOR DATA ITEMS:
+ ID TIME EVID CMT AMT DV MDV
+0(NONBLANK) LABELS FOR PRED-DEFINED ITEMS:
+ CL
+0FORMAT FOR DATA:
+ (7E4.0)
+
+ TOT. NO. OF OBS RECS:        0
+ TOT. NO. OF INDIVIDUALS:        1
+0LENGTH OF THETA:   5
+0DEFAULT THETA BOUNDARY TEST OMITTED:    NO
+0OMEGA HAS BLOCK FORM:
+  1
+  0  2
+  0  0  3
+  0  0  0  4
+  0  0  0  0  5
+0DEFAULT OMEGA BOUNDARY TEST OMITTED:    NO
+0SIGMA HAS SIMPLE DIAGONAL FORM WITH DIMENSION:   2
+0DEFAULT SIGMA BOUNDARY TEST OMITTED:    NO
+0UPPER BOUNDS INAPPROPRIATE
+0INITIAL ESTIMATE OF THETA:
+ LOWER BOUND    INITIAL EST    UPPER BOUND
+  0.0000E+00     0.1812E+00     0.1000E+07
+  0.0000E+00     0.4200E-01     0.1000E+07
+  0.0000E+00     0.7247E+00     0.1000E+07
+  0.0000E+00     0.1784E+00     0.1000E+07
+  0.0000E+00     0.2270E+07     0.1000E+07
+]]></nm:problem_information>
+<nm:problem_options
+ nm:data_checkout_run='no' nm:data_unit='2' nm:data_rewind='no' nm:data_nrec='25' nm:data_nitems='7' nm:data_id='1'
+ nm:data_l2='0' nm:data_dv='6' nm:data_mdv='7' nm:data_mrg='0' nm:data_raw='0' nm:data_rpt='0' nm:data_sub_array1='0'
+ nm:data_sub_array2='0' nm:data_sub_array3='0' nm:data_pred_indices='3,2,5,0,0,0,4,0,0,0,0'
+ nm:data_format='(7e4.0)' nm:data_nobs='0' nm:data_nind='1' nm:data_mdv100='0' nm:nthetat='5'
+ nm:theta_bound_test_omitted='no' nm:omega_blockdim='5' nm:omega_bound_test_omitted='no' nm:sigma_diagdim='2'
+ nm:sigma_bound_test_omitted='no'
+/>
+</nm:nonmem>
+<nm:stop_datetime>2022-10-24T17:42:13.176</nm:stop_datetime>
+<nm:total_cputime>0.002</nm:total_cputime>
+</nm:output>

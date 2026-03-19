@@ -5,14 +5,18 @@
 ##'     path format, i.e. paths that can be compared by simple string
 ##'     comparison. Redundant /'s removed. normalizePath is used to
 ##'     possibly shorten path.
-##' @param ... additional arguments passed to file.path().
+##' @param ... additional arguments passed to file.path(). If empty (NULL or zero length vectors) are included they will be dropped. This can be convenient for programming.
 ##' @return A (character) file path
 ##' @family FileSystem
 ##' @keywords internal
 
 filePathSimple <- function(...){
+
+### drop empty
+    dots <- list(...)
+    dots <- dots[!sapply(dots,is.null)]
     
-    fpath <- file.path(...)
+    fpath <- do.call(file.path,dots)
     ## get rid of heading and tailing white spaces
     fpath <- trimws(fpath)
     ## convert double \\ into /
@@ -20,11 +24,11 @@ filePathSimple <- function(...){
     ## removing redundant /'s that make it harder to compare paths. Not in beginning of paths, because they are network paths.
     slashes.lead <- sub("^(/*).*","\\1",fpath)
     after.slashes <- sub("^/+","",fpath)
-    after.slashes2 <-  gsub(pattern="//",replacement="/",after.slashes)
+    after.slashes2 <-  gsub(pattern="//+",replacement="/",after.slashes)
     fpath <- paste0(slashes.lead,after.slashes2)
 ##    fpath <- gsub(pattern="(?<!^)/+",replacement="/",fpath)
     ## a dir path should not end in a / (which again, makes comparissons more complicate)
-    fpath <- gsub(pattern="/+$",replacement="",x=fpath)
+    fpath <- gsub(pattern="([^/])/+$",replacement="\\1",x=fpath)
     
     
     ## Denote windows drives with capital letter

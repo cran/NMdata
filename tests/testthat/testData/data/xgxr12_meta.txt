@@ -1,0 +1,5 @@
+"parameter","value"
+"DataCreateScript","dsCreate_1.R"
+"CreationTime","2024-10-30 16:06:02 EDT"
+"writtenTo","../../tests/testthat/testData/data/xgxr12.rds ../../tests/testthat/testData/data/xgxr12.csv"
+"description","AMT in micrograms"

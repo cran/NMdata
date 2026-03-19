@@ -1,3 +1,23 @@
+# NMdata 0.2.4
+
+## New Features
+New function `dcastSe()` included. data.table's dcast() transforms from long to wide format. It lacks a standard-evalutation interface for programming, and dcastSe() is an attempt to fill that gap, still using data.table::dcast() to perform the operation.
+
+## Bugfixes 
+* `NMreadInits()`, `NMreadSection()` and related functions that read control streams would fail in case of non-ascii characters (such as Greek mu) in control streams. The current fix converts to ascii where possible and drops the non-ascii characters where not possible. Thank you to RichardHooijmaijers for reporting [issue 53](https://github.com/NMautoverse/NMdata/issues/53).
+
+* `NMcheckData()` would not summarize number of subjects without doses and number of subjects without observations correctly if using a `col.id` different from `ID`. Notice, the checks were correct but the shown summary was not. Fixed.
+
+
+## Other improvements
+* `flagsCount()` orders summary according to numeric exclusion flag value.
+
+* `NMreadExt()` includes columns `estimate`, `se`, `FIX`, and `termStat` in iterations object, to the extend found in the `.ext` file. Notice, this information and more was already included in the parameter estimate object from `NMreadExt()` but for convenience now carried over to the iterations object. If more columns from the parameter estimate table are needed, please use `return="all"` and then merge them over from `pars` to `iterations`.
+
+* `NMctl()` is a convenient reader of control stream files. It used to remove empty lines. This has now been changed so they are kept. The motivation is downstream use of the function where derived control streams may be desired to align more closely with their origin.
+
+* `fnAppend()` now returns the outer (or cross) product when both `fn` (file name) and `x` (string to append) are vectors, and `sep` is `NULL`.
+
 # NMdata 0.2.3
 
 ## New Features
@@ -111,7 +131,7 @@ $OMEGA 0.15 ; IIV.KA ; lognormal
 * `tmpcol()` adds support for multiple variables, providing unique
   variable names for all, taking into account existing variables. Also
   gains an argument, `sep`, to control separator between base and a
-  possible counter (to ensure uniquenes).
+  possible counter (to ensure uniqueness).
 
 ## Bugfixes
 * `NMreadFilters()` would classify single-character filters as accept

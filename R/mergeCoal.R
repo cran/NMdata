@@ -37,21 +37,18 @@
 ##' y <- data.table(idx=1:2,a=c("ya1",NA),b=c(NA,"yb2"),c=1)
 ##' mergeCoal(x,y,by="idx")
 ##' @export
+##' @seealso mergeCheck egdt
 
 mergeCoal <- function(x,y,by,cols.coal,add.new=TRUE,as.fun){
 
 #### Dummy variables, only not to get NOTE's in pacakge checks ####
 
-    ..by <- NULL
     value <- NULL
     value.x <- NULL
     value.y <- NULL
 
 ### End: Dummy variables, only not to get NOTE's in pacakge checks ###
 
-
-
-    
     if(missing(as.fun)) as.fun <- NULL
     as.fun <- NMdataDecideOption("as.fun",as.fun)
     if(missing(by)) by <- NULL
@@ -60,7 +57,8 @@ mergeCoal <- function(x,y,by,cols.coal,add.new=TRUE,as.fun){
     if(missing(cols.coal)) cols.coal <- NULL
     
     if(is.null(by)&&is.null(cols.coal)){
-        by <- setdiff(intersect(colnames(x),colnames(y)))
+        
+        by <- intersect(colnames(x),colnames(y))
         message("Neither of `by` and `cols.coal` provided. Using all common columns in x and y as by variables.")
     }
     
@@ -71,7 +69,7 @@ mergeCoal <- function(x,y,by,cols.coal,add.new=TRUE,as.fun){
     col.row.x <- tmpcol(names=unique(c(colnames(x),colnames(y))),base="xrow")
     x[,(col.row.x):=.I]
 
-    if(!is.null(cols.coal)){
+    if(!is.null(cols.coal) && !(is.logical(cols.coal) && cols.coal==FALSE)){
         if(!all(cols.coal%in%colnames(y))){
             stop("cols.coal must be a character vector of column names found in y")
         }
@@ -95,7 +93,7 @@ mergeCoal <- function(x,y,by,cols.coal,add.new=TRUE,as.fun){
     if(is.null(by)){
         stop("No by variables found. By must be supplied and point to columns present in both x and y.")
     }
-    if(anyNA(y[,..by])){
+    if(anyNA(y[,by,with=FALSE])){
         stop("missing values are not allowed in by columns of y.")
     }
 
@@ -135,4 +133,4 @@ mergeCoal <- function(x,y,by,cols.coal,add.new=TRUE,as.fun){
     res[,(col.row.x):=NULL]
 
     as.fun(res)
-    }
+}
