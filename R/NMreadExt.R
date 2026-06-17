@@ -254,7 +254,7 @@ NMreadExt <- function(file,return,as.fun,modelname,col.model,auto.ext,tableno="m
     
     res.NMdat <- mergeCheck(res.NMdat,dt.codes,by=cc(ITERATION),all.x=T,quiet=TRUE)
     res.NMdat[ITERATION >(-1e9),variable := "iteration"]
-    res.NMdat <- addTableStep(res.NMdat,keep.table.name=FALSE)
+    res.NMdat <- addTableStep(res.NMdat,keep.table.name=FALSE,quiet=TRUE)
 
     ## pars <- res.NMdat[variable%in%dt.codes$variable,setdiff(colnames(res.NMdat),"OBJ"),with=FALSE]
     pars <- res.NMdat[variable%in%dt.codes$variable]
@@ -281,11 +281,13 @@ NMreadExt <- function(file,return,as.fun,modelname,col.model,auto.ext,tableno="m
         
     }
     
+
+    if(return=="pars") return(as.fun(pars))
+    if(return=="obj") return(as.fun(obj))
     
     ## what to do about OBJ? Disregard? And keep in a iteration table instead?
     iterations <- res.NMdat[as.numeric(ITERATION)>(-1e9),!("variable")] 
     if(nrow(iterations)){
-        iterations <- addTableStep(iterations,keep.table.name=FALSE)
         id.vars <- intersect(c(col.model,cc(TABLENO,NMREP,table.step,ITERATION,variable)),colnames(iterations))    
         iterations <- melt(iterations,id.vars=id.vars,variable.name="parameter")
         iterations <- addParType(iterations)
@@ -306,11 +308,7 @@ NMreadExt <- function(file,return,as.fun,modelname,col.model,auto.ext,tableno="m
     res <- list(pars=pars,iterations=iterations,obj=obj)
     res <- lapply(res,as.fun)
 
-    
-    if(return=="pars") return(res$pars)
     if(return=="iterations") return(res$iterations)
-    if(return=="obj") return(res$obj)
-
     
     ## as.fun already applied
     res

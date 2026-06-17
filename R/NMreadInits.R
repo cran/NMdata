@@ -295,10 +295,13 @@ NMreadInits <- function(file,lines,section,return="pars",as.fun) {
           "ll.init"="\\( *(\\s*-?-?(?:\\d+(\\.\\d+)?|(?:\\d+)?\\.\\d+)([eE][+-]?\\d+)?\\s*)*,\\s*-?-?(?:\\d+(\\.\\d+)?|(?:\\d+)?\\.\\d+)([eE][+-]?\\d+)?\\s*\\)", # (ll,init)
           "(init)"="\\(\\s*-?(?:\\d+(\\.\\d+)?|(?:\\d+)?\\.\\d+)([eE][+-]?\\d+)?\\s*\\)",  # (init)
           "init" = "(?<!\\d)-?(\\d+\\.\\d+|\\d+\\.|\\.\\d+|\\d+)([eE][+-]?\\d+)?(?!\\.)",
-          "fix"="\\bFIX(ED)?\\b",  # FIX(ED)
-          "same"="SAME"
+          "fix" = "\\bFIX(ED)?\\b",  # FIX
+          "init.fix"="\\(\\s*-?(?:\\d+(\\.\\d+)?|(?:\\d+)?\\.\\d+)([eE][+-]?\\d+)?\\s+FIX(ED)?\\s*\\)",  # (init FIX)
+          ## "same"="SAME()"
+          "same"="SAME\\s*(\\(\\d+\\))?"
           )
     
+  
     dt.lines <- rbindlist(
         lapply(section,function(sec){
             dt.l <- data.table(text=NMreadSection(lines=lines,section=sec,keep.empty=TRUE,keep.comments=TRUE))
@@ -310,7 +313,15 @@ NMreadInits <- function(file,lines,section,return="pars",as.fun) {
         })
        ,fill=TRUE
     )
-    
+
+  if(!nrow(dt.lines)){
+    return(
+      list(pars=NULL,
+           lines=NULL,
+           elements=NULL
+           )
+    )
+  }
     
     pattern <- paste(patterns,collapse="|")
 
@@ -384,17 +395,35 @@ NMreadInits <- function(file,lines,section,return="pars",as.fun) {
         
 ### If SAME and blocksize>1, element must be repeated for all block elements
         res.sameblocks <- lapply(
-            split(res[value.elem=="SAME"&blocksize>1],by="elemnum")
+            split(res[isSAME(value.elem)&blocksize>1],by="elemnum")
            ,
             function(x){
+              
                 newelems <- egdt(x,data.table(isame=1:triagSize(x$blocksize)),quiet=T)
                 newelems[,parnum:=parnum+isame-1]
                 newelems[,isame:=NULL]
+                nsame <- unique(NSAME(x$value.elem))
+                if(length(nsame)==1 && nsame > 1){
+                  ## this could be done with egdt too
+                  res0 <- lapply(0:(nsame-1),function(thisnsame){
+                    
+                    sblock <- copy(newelems)
+                    
+                    sblock[,parnum := parnum+triagSize(blocksize)*thisnsame]
+                    sblock[,parblock := parblock+triagSize(blocksize)*thisnsame]
+                    sblock[,lastblockmax := lastblockmax+triagSize(blocksize)*thisnsame]
+                    sblock
+                  })
+                  
+                  ## newelems <- rbind(newelems,rbindlist(res0))
+                  newelems <- rbindlist(res0)
+                }
                 newelems
             }
         )
+        
         res <- rbind(
-            res[!(value.elem=="SAME"&blocksize>1)]
+            res[!(isSAME(value.elem)&blocksize>1)]
            ,
             rbindlist(res.sameblocks)
         )
@@ -406,26 +435,33 @@ NMreadInits <- function(file,lines,section,return="pars",as.fun) {
         res[par.type=="THETA",j:=NA]
         res
     })
+  
+    elems <- rbindlist(res.list)
+    elems <- addParameter(elems)
+    setcolorder(elems,c("parameter","par.name","par.type","i","j"))
     
-    res <- rbindlist(res.list)
-    res <- addParameter(res)
-    setcolorder(res,c("parameter","par.name","par.type","i","j"))
-    
-    pars <- initsToExt(res)
+    pars <- elemsToExt(elems)
     if(return=="pars") return(as.fun(pars))
     
     setcolorder(dt.lines,cc(par.type,linenum,text,text.clean,text.before,text.after))
     
     list(pars=as.fun(pars),
          lines=as.fun(dt.lines),
-         elements=as.fun(res)
+         elements=as.fun(elems)
          )
 
 }
 
+##' @keywords internal
+initsToExt <- function(...){
+  .Deprecated(new="elemsToExt")
+  elemsToExt(...)
+}
+
+
 ##' Convert inits elements to a parameter data.frame
 ##' @param elements The elements object produced by `NMreadInits()`.
-##' @details initsToExt is misleading. It is not a reference to the
+##' @details Function name changed from initsToExt which was misleading. It is not a reference to the
 ##'     initstab, but actually the elements object returned by
 ##'     NMreadInits. The elements object is more detailed as it
 ##'     contains information about where information is found in
@@ -434,7 +470,7 @@ NMreadInits <- function(file,lines,section,return="pars",as.fun) {
 ##'     `NMdata::NMreadExt()`.
 ##' @import data.table
 ##' @keywords internal
-initsToExt <- function(elements){
+elemsToExt <- function(elements){
 
 #### Section start: Dummy variables, only not to get NOTE's in pacakge checks ####
 
@@ -464,13 +500,17 @@ initsToExt <- function(elements){
 ###  init=SAME may not work for blocksizes>1
     if("init"%in%colnames(pars)){
         pars[,init.char:=init]
+        pars[,SAME:=0]
+        ## pars[init.char=="SAME",SAME:=1]
+        pars[isSAME(init.char),SAME:=1]
+        ## This inserts N for SAME(N) which turns out to be confusing.
+        ## pars[grepl("^ *SAME(.+)",init.char),SAME := NSAME(init.char)]
+
         suppressWarnings(pars[,init.num:=as.numeric(init)])
         pars[,init.num.tmp:=nafill(init.num,type="locf")]
-        pars[!is.na(init.num)|init=="SAME",init.num:=init.num.tmp]
+        pars[!is.na(init.num)|SAME > 0,init.num:=init.num.tmp]
         pars[,init:=init.num]
         pars[,init.num:=NULL]
-        pars[,SAME:=0]
-        pars[init.char=="SAME",SAME:=1]
     } else {
         ## not sure this will ever happen
         pars[,init:=NA_real_]
@@ -510,6 +550,7 @@ initsToExt <- function(elements){
 ##' Nsameblock: The number of SAME calls used for a distribution
 ##' block. If SAME(N) notation is used, Nsameblock=N.
 ##' @author Brian Reilly
+##' @import data.table
 ##' @keywords internal
 
 addSameBlocks <- function(inits) {
@@ -525,8 +566,10 @@ addSameBlocks <- function(inits) {
 ### Section end: Dummy variables, only not to get NOTE's in pacakge checks ####
 
     inits = copy(as.data.table(inits))
-    inits[,startSameBlock := ifelse(SAME==0 & data.table::shift(SAME,type="lead") == 1, 1, 0)]
-    inits[,endSameBlock := ifelse(SAME==1 & data.table::shift(SAME,type="lead") == 0, 1, 0)]
+  inits[,startSameBlock := ifelse(SAME==0 & data.table::shift(SAME,type="lead") == 1, 1, 0)]
+  ## inits[,startSameBlock := ifelse(SAME==0 & data.table::shift(SAME,type="lead") > 0 , 1, 0)]
+  inits[,endSameBlock := ifelse(SAME==1 & data.table::shift(SAME,type="lead") == 0, 1, 0)]
+  ## inits[,endSameBlock := ifelse(SAME > 0 & data.table::shift(SAME,type="lead") == 0, 1, 0)]
     df = inits
     start <- as.integer(replace(df$startSameBlock, is.na(df$startSameBlock), 0))
     end   <- as.integer(replace(df$endSameBlock,   is.na(df$endSameBlock),   0))
@@ -556,7 +599,8 @@ addSameBlocks <- function(inits) {
     
                                         # add N of same group
     ## df[, Nsameblock := ifelse(any(sameblock!=0), .N-1, 0), by=sameblock]
-    df[, Nsameblock := if(any(sameblock!=0)) .N-1 else 0, by=sameblock]
+   df[, Nsameblock := if(any(sameblock!=0)) .N-1 else 0, by=sameblock]
+## df[, Nsameblock := if(any(sameblock!=0)) sum(SAME) else 0, by=sameblock]
 
     df <- df[,setdiff(colnames(df),c("startSameBlock","endSameBlock")),with=FALSE]
     

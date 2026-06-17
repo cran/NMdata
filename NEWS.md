@@ -1,3 +1,22 @@
+# NMdata 0.2.5
+## New Features
+* New function `reorder2()`. Like `reorder()` but takes multiple ordering
+  arguments. The reordering can be with respect to expressions.
+
+* `setOrderList()` is a new convenient function that reorders elements in a list, much like `setcolorder()` for data.table's. It takes both `first` and `last` arguments to specify what elements to move where.
+
+* `dcastSe()` gains ability to rename left-hand-side columns directly. 
+
+* `NMwriteInits()` supports `fix=TRUE` (or `FALSE`). Previously, 0 or 1 was expected.
+
+## Bugfixes 
+`NMreadInits()` will now handle models that only include a subset of parameter types `THETA`, `OMEGA` and `SIGMA`.
+
+`NMscanInput()` could fail in cases where filters (`ACCEPT/IGNORE` statements) were applied to colums renamed in `$INPUT`. 
+
+## Other improvements
+Some benign but uninformative messaging that table steps were added to tables or not added to tables have been silenced.
+
 # NMdata 0.2.4
 
 ## New Features
