@@ -102,6 +102,10 @@ test_that("appending to strings like geee..",{
 test_that("no file name stem",{
     res <- fnAppend(".jpg", "afile")
     expect_equal(res, "afile.jpg")
+
+    res <- fnAppend("file", "afile",allow.noext=T)
+    expect_equal(res, "file_afile")
+
 })
 
 test_that("Attach multiple separate strings",{
@@ -109,12 +113,33 @@ test_that("Attach multiple separate strings",{
     res <- fnAppend("file.jpg", c("a","b"),collapse=NULL)
     expect_equal(res, c("file_a.jpg","file_b.jpg"))
 
-
-
 })
 
 test_that("Attach multiple separate strings",{
 
     res <- fnAppend(c("file1.jpg","file2.jpg"), c("a","b"),collapse=NULL)
    expect_equal(res,c("file1_a.jpg", "file1_b.jpg", "file2_a.jpg", "file2_b.jpg"))  
+})
+
+test_that("dir/.png",{
+      fileRef <- "testReference/fnAppend_05.rds"
+
+
+      res <- list(
+        fnAppend("dir/.png","x",allow.noext=F)
+       ,fnAppend("dir/.png","x",allow.noext=F)
+       ,fnAppend("./.png","x",allow.noext=F) ## preserves ./ because it's explicit
+       ,fnAppend("dir/file","x",allow.noext=T)
+       ,fnAppend("dir/file","x",allow.noext=T)
+       ,fnAppend("./file","x",allow.noext=T)
+    )
+
+    expect_equal_to_reference(res,fileRef)
+
+      if(FALSE){
+        ref <- readRDS(fileRef)
+        res
+        ref
+      }
+      
 })

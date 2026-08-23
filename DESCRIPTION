@@ -2,7 +2,7 @@ Package: NMdata
 Type: Package
 Title: Preparation, Checking and Post-Processing Data for PK/PD
         Modeling
-Version: 0.2.5
+Version: 0.2.6
 Authors@R: 
   c(person(given="Philip", family="Delff",email = "philip@delff.dk",role = c("aut", "cre")),
     person("Brian", "Reilly", email = "reilly.brian.m@gmail.com",role = c("ctb")),
@@ -20,11 +20,11 @@ Language: en-US
 URL: https://nmautoverse.github.io/NMdata/
 Config/testthat/edition: 2
 Config/roxygen2/version: 8.0.0
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 NeedsCompilation: no
-Packaged: 2026-06-17 02:08:13 UTC; delff
+Packaged: 2026-08-23 15:54:00 UTC; delff
 Author: Philip Delff [aut, cre],
   Brian Reilly [ctb],
   Eric Anderson [ctb]
 Repository: CRAN
-Date/Publication: 2026-06-17 06:40:02 UTC
+Date/Publication: 2026-08-23 16:20:14 UTC

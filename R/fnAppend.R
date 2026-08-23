@@ -38,83 +38,75 @@
 ##' fnAppend("plot.png",1:2,collapse=NULL)
 ##' ## outer/cross product if multiple files and multiple strings
 ##' fnAppend(c("plot1.png","plot2.png"),1:2,collapse=NULL)
+##' ## within subdirectories
+##' fnAppend("dir/plot.png","one")
+##' fnAppend("dir/.png","one")
 ##' @export
 
 
-fnAppend <- function(fn,x,pad0=0,sep="_",collapse=sep,position="append",allow.noext=FALSE){
+fnAppend <- function(fn,x,pad0=0,sep="_",collapse=sep,position=c("append","prepend"),allow.noext=FALSE){
 
-    if(is.null(x)) return(fn)
-    
-    if((!is.numeric(x)&&!is.character(x))) stop("x must be numeric or character vector.")
-    position <- match.arg(position,choices=c("append","prepend")) 
-    
-    if(is.numeric(x)){
-        ## formating padding zeros. pad0 determines the format of x in sprintf. 
-        fmt <- paste0("%0",pad0,"d")
-        x.string <- sprintf(fmt=fmt,x)
-    } else {
-        x.string <- x
-    }
-    x.string <- paste(x.string,collapse=collapse)
+  allext <- NULL
+  fnroot <- NULL
+  res.fn <- NULL
+  res <- NULL
 
-    ## if(length(fn)>1 && length(x.string)>1){
-    ##     stop("Both fn and x are of length>1. This is currently not supported. Is `collapse NULL`?")
-    ## }
-    
-    if(all(nchar(x.string))==0) return(fn)
+  if(is.null(fn)) fn <- ""
+  if(is.null(x)) return(fn)
+  
+  if((!is.numeric(x)&&!is.character(x))) stop("x must be numeric or character vector.")
+  position <- match.arg(position,choices=c("append","prepend")) 
 
-    ## fnAppend supports strings in fn that do not have file name
-    ## extensions (not in a str/ing.ext format). An extension can be
-    ## required to ensure paths are meaningful.
-    ## has.ext <- grepl(".*[^\\.]\\.[a-zA-Z0-9]+",fn)
-    has.ext <- grepl(".*\\.[a-zA-Z0-9]+$",fn)
-    if( !all(has.ext) && !allow.noext){
-        stop("Elements in fn have no extension and allow.noext=FALSE")
-    }
+  position <- match.arg(position)
 
-    
-    if(position=="append"){
-        dt.res <- CJ(fn,x.string)
-        dt.res[,has.ext :=  grepl(".*\\.[a-zA-Z0-9]+$",fn)]
-        dt.res[,allext := ""]
-        dt.res[has.ext==TRUE,allext := paste0(".",fnExtension(fn))]
-        dt.res[,fnroot := fnExtension(fn,"")]
+  if(is.numeric(x)){
+    ## formating padding zeros. pad0 determines the format of x in sprintf. 
+    fmt <- paste0("%0",pad0,"d")
+    x.string <- sprintf(fmt=fmt,x)
+  } else {
+    x.string <- x
+  }
+  x.string <- paste(x.string,collapse=collapse)
 
-        dt.res[,res := ""]
-        dt.res[fnroot!="",res := paste0(fnroot[fnroot!=""],sep,x.string,allext)]
-        dt.res[fnroot=="",res := paste0(x.string,allext)]
-        return(dt.res$res)
-        if(FALSE){
-            allext <- rep("",length(fn))
-            ## allext[has.ext] <- sub(".*[^\\.]\\.([a-zA-Z0-9]+)$","\\1",fn[has.ext])
-            allext[has.ext] <- sub(".*\\.([a-zA-Z0-9]+)$","\\1",fn[has.ext])
-            allext[has.ext] <- paste0(".",allext[has.ext])
-            
-            ## this is the same as fnExtension(fn,"")
-            fnroot <- sub(paste0("\\.[a-zA-Z0-9]+$"),"",fn)
+  ## if(length(fn)>1 && length(x.string)>1){
+  ##     stop("Both fn and x are of length>1. This is currently not supported. Is `collapse NULL`?")
+  ## }
+  
+  if(all(nchar(x.string))==0) return(fn)
 
-            res <- rep("",length(fn))
-            
+  ## fnAppend supports strings in fn that do not have file name
+  ## extensions (not in a str/ing.ext format). An extension can be
+  ## required to ensure paths are meaningful.
+  ## has.ext <- grepl(".*[^\\.]\\.[a-zA-Z0-9]+",fn)
+  has.ext <- grepl(".*\\.[a-zA-Z0-9]+$",fn)
+  if( !all(has.ext) && !allow.noext){
+    stop("Elements in fn have no extension and allow.noext=FALSE")
+  }
+  
+  dt.res <- CJ(fn,x.string)
+  dt.res[,dir := dirname(fn)]
+  dt.res[dir=="."&!grepl("^\\./",fn),dir := ""]
+  dt.res[,fn := basename(fn)]
+  dt.res[,has.ext :=  grepl(".*\\.[a-zA-Z0-9]+$",fn)]
+  dt.res[,allext := ""]
+  dt.res[has.ext==TRUE,allext := paste0(".",fnExtension(fn))]
+  dt.res[,fnroot := fnExtension(fn,"")]
 
-            res[fnroot!=""] <- paste0(fnroot[fnroot!=""],sep,x.string,allext)
-            res[fnroot==""] <- paste0(x.string,allext)
-            
-            ##return(paste0(fnroot,sep,x.string,allext))
-            return(res)
-        }
-    }
+  dt.res[,res.fn := ""]
 
-    if(position=="prepend"){
-        dir <- dirname(fn)
-        dir[dir!="."] <- paste0(dir[dir!="."],"/")
-        dir[dir=="."] <- ""
-        
-        return(
-            paste0(
-                dir
-               ,paste(x.string,basename(fn),sep=sep)
-            )
-        )
-    }
-    
+  if(position=="append"){
+    dt.res[fnroot!="",res.fn := paste0(fnroot[fnroot!=""],sep,x.string,allext)]
+    dt.res[fnroot=="",res.fn := paste0(x.string,allext)]
+  }
+
+  if(position=="prepend"){        
+    dt.res[,res.fn := paste(x.string,basename(fn),sep=sep)]
+  }
+
+  dt.res[dir=="",res := res.fn]
+  dt.res[dir!="",res := paste0(dir,"/",res.fn)]
+
+  return(dt.res$res)
+  
 }
+
